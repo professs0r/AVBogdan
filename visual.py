@@ -112,3 +112,4 @@ fig.update_traces(hoverinfo="all",
 
 # строим график
 fig.show()
+# добавил изменения через редактор VIM
