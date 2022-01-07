@@ -57,3 +57,4 @@ fig = go.Figure(data=[edges_trace, nodes_trace],
         )
 
 fig.show()
+# э литтл бит
