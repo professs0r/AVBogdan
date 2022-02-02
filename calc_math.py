@@ -11,6 +11,11 @@ import networkx
 COUNT_NODES = 10
 COUNT_BRANCHES = 17
 
+# функция для добавления рёбер
+def func_add_edge(from, to graph=None):
+    graph.add_edge(from,to)
+    graph.add_edge(to,from)
+
 array_of_resistance = numpy.zeros((COUNT_BRANCHES, COUNT_BRANCHES))
 array_of_EMF = numpy.zeros((COUNT_BRANCHES, 1))
 
