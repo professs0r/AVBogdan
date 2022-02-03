@@ -11,10 +11,15 @@ import networkx
 COUNT_NODES = 10
 COUNT_BRANCHES = 17
 
+# инициализация графа
+def func_initializetion(count_nodes, count_branches):
+    graph = 
+    return graph
+
 # функция для добавления рёбер
-def func_add_edge(from, to graph=None):
-    graph.add_edge(from,to)
-    graph.add_edge(to,from)
+def func_add_edge(source, goal, graph=None):
+    graph.add_edge(source, goal)
+    graph.add_edge(goal, source)
 
 array_of_resistance = numpy.zeros((COUNT_BRANCHES, COUNT_BRANCHES))
 array_of_EMF = numpy.zeros((COUNT_BRANCHES, 1))
@@ -62,11 +67,9 @@ array_of_EMF = ([[0],
 #I = numpy.linalg.solve(array_of_resistance,array_of_EMF)
 
 # создаём экземпляр класса Граф
-graph = networkx.Graph()
+graph = func_initialization(COUNT_NODES, COUNT_BRANCHES)
 
-# добавляем вершину в граф
-graph.add_node('1')
-
-graph.nodes()
+for nodes in range(COUNT_NODES):
+    graph.add_node(nodes)
 
 print(graph)
