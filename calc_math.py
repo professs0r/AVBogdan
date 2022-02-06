@@ -8,7 +8,7 @@ import plotly
 import pandas
 import plotly.express as px
 import plotly.graph_objs as go
-import
+import matplotlib.pyplot as plt
 
 # global variables
 
@@ -141,6 +141,29 @@ array_of_EMF = ([[0],
                  [-630],
                  [-630]])
 
+x_coordinates_nodes = [2,5,25,45,5,25,45,5,25,45]
+y_coordinates_nodes = [7,5,5,5,25,25,25,45,45,45]
+
+nodes_trace= go.Scatter(x=x_coordinates_nodes,
+                        y=y_coordinates_nodes,
+                        hoverinfo='text',
+                        mode='markers'
+                        marker=dict(
+                            showscale=True,
+                            colorscale='Electic',
+                            reversescale=True,
+                            color='tan',
+                            size=35,
+                            colorbar=dict(thickness=15,
+                                          title='Node Connection',
+                                          xanchor='left',
+                                          titleside='right')
+                            ),
+                        line_width=2
+                        )
+
+edges_trace = go.Scatter()
+
 
 # строки кода ниже решают системы уравнений (можно пользоваться любой из них результат одинаковый)
 #I = numpy.linalg.inv(R).dot(E)
@@ -170,6 +193,12 @@ graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCH
 
 # visualization
 
-# edges_trace = go.Scatter(x)
-networkx.draw(graph1)
+edges_trace = go.Scatter(x)
 
+
+
+
+
+# 2 strings below drawing graph by standart libraries
+#networkx.draw(graph1, with_labels = True)
+#plt.show()
