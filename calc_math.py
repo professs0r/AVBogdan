@@ -93,13 +93,71 @@ def func_initialization_directed_adjacency_matrix(count_nodes, count_branches):
                     graph.add_edge(start, stop)
     return graph
 
-def count_equation(graph):
+def func_count_equation(graph):
     count_equation = numpy.array()
     graph
 
 def func_add_edge(source, goal, graph=None):
     graph.add_edge(source, goal)
     graph.add_edge(goal, source)
+
+def func_visualization(graph):
+    x_coordinates_nodes = [2,5,25,45,5,25,45,5,25,45]
+    y_coordinates_nodes = [7,5,5,5,25,25,25,45,45,45]
+
+    nodes_trace = go.Scatter(x=x_coordinates_nodes,
+                             y=y_coordinates_nodes,
+                             hoverinfo='text',
+                             mode='markers',
+                             marker=dict(
+                                 showscale=True,
+                                 colorscale='electric',
+                                 reversescale=True,
+                                 color='tan',
+                                 size=35,
+                                 colorbar=dict(thickness=15,
+                                               title='Node Connection',
+                                               xanchor='left',
+                                               titleside='right')
+                                 ),
+                             line_width=2
+                             )
+    x_edges = []
+    y_edges = []
+
+    for edges in graph.edges():
+        x0, y0 = graph.nodes[edges[0]]['pos']
+        x1, y1 = graph.nodes[edges[1]]['pos']
+        x_edges.append(x0)
+        x_edges.append(x1)
+        x_edges.append(None)
+        y_edges.append(y0)
+        y_edges.append(y1)
+        y_edges.append(None)
+
+    edges_trace = go.Scatter(x=x_edges,
+                             y=y_edges,
+                             line=dict(width=0.5, color='#888'),
+                             hoverinfo='none',
+                             mode='lines')
+    fig = go.Figure(data=[edges_trace,nodes_trace],
+            layout = go.Layout(
+                title='Graph',
+                titlefont_size=16,
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20, l=5, r=5, t=40),
+                annotations=[dict(text="Ammotations",
+                                  showarrow=False,
+                                  xref="paper",
+                                  yref="paper",
+                                  x=0.005,
+                                  y=-0.0025
+                    )],
+                xaxis=dict(showgrid=False, zeroline=False, showticklables=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklables=False),
+                ))
+    fig.show()
 
 array_of_resistance = numpy.zeros((COUNT_BRANCHES, COUNT_BRANCHES))
 array_of_EMF = numpy.zeros((COUNT_BRANCHES, 1))
@@ -141,28 +199,6 @@ array_of_EMF = ([[0],
                  [-630],
                  [-630]])
 
-x_coordinates_nodes = [2,5,25,45,5,25,45,5,25,45]
-y_coordinates_nodes = [7,5,5,5,25,25,25,45,45,45]
-
-nodes_trace= go.Scatter(x=x_coordinates_nodes,
-                        y=y_coordinates_nodes,
-                        hoverinfo='text',
-                        mode='markers'
-                        marker=dict(
-                            showscale=True,
-                            colorscale='Electic',
-                            reversescale=True,
-                            color='tan',
-                            size=35,
-                            colorbar=dict(thickness=15,
-                                          title='Node Connection',
-                                          xanchor='left',
-                                          titleside='right')
-                            ),
-                        line_width=2
-                        )
-
-edges_trace = go.Scatter()
 
 
 # строки кода ниже решают системы уравнений (можно пользоваться любой из них результат одинаковый)
@@ -171,7 +207,6 @@ edges_trace = go.Scatter()
 
 
 graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCHES)
-#print(graph1)
 
 
 
@@ -193,12 +228,10 @@ graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCH
 
 # visualization
 
-edges_trace = go.Scatter(x)
-
-
-
-
-
 # 2 strings below drawing graph by standart libraries
 #networkx.draw(graph1, with_labels = True)
 #plt.show()
+
+func_visualization(graph1)
+
+# остановился на том, что занимался отладкой функции func_visualization
