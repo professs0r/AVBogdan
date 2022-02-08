@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 
 COUNT_NODES = 9
 COUNT_BRANCHES = 17
+X_COORDINATES_NODES = [2,5,25,45,5,25,45,5,25,45]
+Y_COORDINATES_NODES = [7,5,5,5,25,25,25,45,45,45]
 
 # initialization nondirected graph
 def func_initialization_nondirected_adjacency_list(count_nodes, count_branches):
@@ -73,10 +75,11 @@ def func_initialization_directed_adjacency_list(count_nodes, count_branches):
         for stop in range(len(directed_adjacency_list[start])):
             graph.add_edge(start, directed_adjacency_list[start][stop])
     return graph
+# NOW JUST WORKING WITH THIS FUNCTION
 def func_initialization_directed_adjacency_matrix(count_nodes, count_branches):
     graph = networkx.Graph()
     for nodes in range(count_nodes):
-        graph.add_node(nodes)
+        graph.add_node(nodes, pos=(X_COORDINATES_NODES[nodes],Y_COORDINATES_NODES[nodes]))
     directed_adjacency_matrix = numpy.array([(0,1,0,0,0,0,0,0,0,0),
                                              (0,0,1,0,1,0,0,0,0,0),
                                              (0,0,0,1,0,1,0,0,0,0),
@@ -102,11 +105,11 @@ def func_add_edge(source, goal, graph=None):
     graph.add_edge(goal, source)
 
 def func_visualization(graph):
-    x_coordinates_nodes = [2,5,25,45,5,25,45,5,25,45]
-    y_coordinates_nodes = [7,5,5,5,25,25,25,45,45,45]
+    X_COORDINATES_NODES = [2,5,25,45,5,25,45,5,25,45]
+    Y_COORDINATES_NODES = [7,5,5,5,25,25,25,45,45,45]
 
-    nodes_trace = go.Scatter(x=x_coordinates_nodes,
-                             y=y_coordinates_nodes,
+    nodes_trace = go.Scatter(x=X_COORDINATES_NODES,
+                             y=Y_COORDINATES_NODES,
                              hoverinfo='text',
                              mode='markers',
                              marker=dict(
@@ -208,8 +211,9 @@ array_of_EMF = ([[0],
 
 graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCHES)
 
-
-
+print(graph1)
+pos = networkx.get_node_attributes(graph1,'pos')
+print(pos)
 
 
 
@@ -232,6 +236,8 @@ graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCH
 #networkx.draw(graph1, with_labels = True)
 #plt.show()
 
-func_visualization(graph1)
+#func_visualization(graph1)
+networkx.draw(graph1, pos)
+plt.show()
 
 # остановился на том, что занимался отладкой функции func_visualization
