@@ -107,6 +107,7 @@ def func_add_edge(source, goal, graph=None):
 def func_visualization(graph):
     X_COORDINATES_NODES = [2,5,25,45,5,25,45,5,25,45]
     Y_COORDINATES_NODES = [7,5,5,5,25,25,25,45,45,45]
+    pos = networkx.get_node_attributes(graph1,'pos')
 
     nodes_trace = go.Scatter(x=X_COORDINATES_NODES,
                              y=Y_COORDINATES_NODES,
@@ -129,8 +130,8 @@ def func_visualization(graph):
     y_edges = []
 
     for edges in graph.edges():
-        x0, y0 = graph.nodes[edges[0]]['pos']
-        x1, y1 = graph.nodes[edges[1]]['pos']
+        x0, y0 = graph.nodes[edges[0]][pos[edges][0]]
+        x1, y1 = graph.nodes[edges[1]][pos[edges][1]]
         x_edges.append(x0)
         x_edges.append(x1)
         x_edges.append(None)
@@ -209,11 +210,14 @@ array_of_EMF = ([[0],
 #I = numpy.linalg.solve(array_of_resistance,array_of_EMF)
 
 
+print("graph1 - graph")
 graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCHES)
-
-print(graph1)
-pos = networkx.get_node_attributes(graph1,'pos')
-print(pos)
+#print(graph1)
+#for edges in graph1.edges():
+#    print(graph1.edges())
+#    print(edges)
+#    print(graph1.nodes[edges[0]]['pos'])
+#    print(graph1.nodes[edges[1]]['pos'])
 
 
 
@@ -237,7 +241,14 @@ print(pos)
 #plt.show()
 
 #func_visualization(graph1)
-networkx.draw(graph1, pos)
-plt.show()
+#networkx.draw(graph1, pos)
+#plt.show()
 
-# остановился на том, что занимался отладкой функции func_visualization
+print("G - graph")
+G = networkx.random_geometric_graph(10, 0.125)
+print(G)
+for edges in G.edges():
+    print(G.edges())
+    print(edges)
+    print(G.nodes[edges[0]]['pos'])
+    print(G.nodes[edges[1]]['pos'])
