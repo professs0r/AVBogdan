@@ -3,7 +3,7 @@
 import numpy
 from numpy import linalg
 import math
-import networkx
+import networkx as nx
 import plotly
 import pandas
 import plotly.express as px
@@ -77,7 +77,7 @@ def func_initialization_directed_adjacency_list(count_nodes, count_branches):
     return graph
 # NOW JUST WORKING WITH THIS FUNCTION
 def func_initialization_directed_adjacency_matrix(count_nodes, count_branches):
-    graph = networkx.Graph()
+    graph = nx.Graph()
     for nodes in range(count_nodes):
         graph.add_node(nodes, pos=(X_COORDINATES_NODES[nodes],Y_COORDINATES_NODES[nodes]))
     directed_adjacency_matrix = numpy.array([(0,1,0,0,0,0,0,0,0,0),
@@ -204,6 +204,70 @@ array_of_EMF = ([[0],
                  [-630]])
 
 
+def func_test_visualization():
+    G = nx.random_geometric_graph(10, 0.125)
+    
+    x_edges = []
+    y_edges = []
+
+    for edges in G.edges():
+        x0, y0 = G.nodes[edges[0]]['pos']
+        x1, y1 = G.nodes[edges[1]]['pos']
+        x_edges.append(x0)
+        x_edges.append(x1)
+        x_edges.append(None)
+        y_edges.append(y0)
+        y_edges.append(y1)
+        y_edges.append(None)
+    
+    edges_trace = go.Scatter(x=x_edges,
+                             y=y_edges,
+                             line=dict(width=0.5, color='#888'),
+                             hoverinfo='none',
+                             mode='lines')
+    
+    x_nodes = []
+    y_nodes = []
+
+    for node in G.nodes():
+        x,y = G.nodes[node]['pos']
+        x_nodes.append(x)
+        y_nodes.append(y)
+
+    nodes_trace = go.Scatter(x=X_COORDINATES_NODES,
+                             y=Y_COORDINATES_NODES,
+                             hoverinfo='text',
+                             mode='markers',
+                             marker=dict(
+                                 showscale=True,
+                                 colorscale='electric',
+                                 reversescale=True,
+                                 color='tan',
+                                 size=35,
+                                 colorbar=dict(thickness=15,
+                                               title='Node Connection',
+                                               xanchor='left',
+                                               titleside='right')
+                                 ),
+                             line_width=2
+                             )
+    fig = go.Figure(data=[edges_trace, nodes_trace],
+            layout=go.Layout(
+                title='Graph',
+                titlefont_size=16,
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20,l=5,r=5,t=40),
+                annotations=[dict(
+                    text="Annotation text",
+                    showarrow=False,
+                    xref="paper", yref="paper",
+                    x=0.005, y=-0.002 ) ],
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                )
+    fig.show()
+
 
 # строки кода ниже решают системы уравнений (можно пользоваться любой из них результат одинаковый)
 #I = numpy.linalg.inv(R).dot(E)
@@ -243,12 +307,4 @@ graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCH
 #func_visualization(graph1)
 #networkx.draw(graph1, pos)
 #plt.show()
-
-print("G - graph")
-G = networkx.random_geometric_graph(10, 0.125)
-print(G)
-for edges in G.edges():
-    print(G.edges())
-    print(edges)
-    print(G.nodes[edges[0]]['pos'])
-    print(G.nodes[edges[1]]['pos'])
+func_test_visualization()
