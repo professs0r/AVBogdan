@@ -16,6 +16,26 @@ COUNT_NODES = 9
 COUNT_BRANCHES = 17
 X_COORDINATES_NODES = [2,5,25,45,5,25,45,5,25,45]
 Y_COORDINATES_NODES = [7,5,5,5,25,25,25,45,45,45]
+directed_adjacency_matrix = numpy.array([(0,1,0,0,0,0,0,0,0,0),
+                                         (0,0,1,0,1,0,0,0,0,0),
+                                         (0,0,0,1,0,1,0,0,0,0),
+                                         (1,0,0,0,0,0,1,0,0,0),
+                                         (0,0,0,0,0,1,0,1,0,0),
+                                         (1,0,0,0,0,0,1,0,1,0),
+                                         (0,0,0,0,0,0,0,0,0,1),
+                                         (1,0,0,0,0,0,0,0,1,0),
+                                         (0,0,0,0,0,0,0,0,0,1),
+                                         (1,0,0,0,0,0,0,0,0,0)])
+directed_adjacency_list= numpy.array([(1),
+                                      (2,4),
+                                      (3,5),
+                                      (0,6),
+                                      (5,7),
+                                      (0,6,8),
+                                      (9),
+                                      (0,8),
+                                      (9),
+                                      (0)])
 
 # initialization nondirected graph
 def func_initialization_nondirected_adjacency_list(count_nodes, count_branches):
@@ -86,7 +106,7 @@ def func_initialization_directed_adjacency_matrix(count_nodes, count_branches):
                                              (1,0,0,0,0,0,1,0,0,0),
                                              (0,0,0,0,0,1,0,1,0,0),
                                              (1,0,0,0,0,0,1,0,1,0),
-                                             (0,0,0,1,0,1,0,0,0,1),
+                                             (0,0,0,0,0,0,0,0,0,1),
                                              (1,0,0,0,0,0,0,0,1,0),
                                              (0,0,0,0,0,0,0,0,0,1),
                                              (1,0,0,0,0,0,0,0,0,0)])
@@ -222,31 +242,37 @@ def func_test_visualization(graph):
     x_edges = []
     y_edges = []
 
-    for edges in G.edges():
-        x0 = G.nodes[edges[0]][X_COORDINATES_NODES[edges]]
-        x1 = G.nodes[edges[1]][X_COORDINATES_NODES[edges]]
-        y0 = G.nodes[edges[0]][Y_COORDINATES_NODES[edges]]
-        y1 = G.nodes[edges[1]][Y_COORDINATES_NODES[edges]]
-        x_edges.append(x0)
-        x_edges.append(x1)
-        x_edges.append(None)
-        y_edges.append(y0)
-        y_edges.append(y1)
-        y_edges.append(None)
-    
+    for all_nodes in range(len(X_COORDINATES_NODES)):
+        count_of_adjacency = numpy.sum(directed_adjacency_matrix[all_nodes])
+        if(count_of_adjacency != 1):
+            for num in range(count_of_adjacency):
+                x0 = X_COORDINATES_NODES[all_nodes]
+                x1 = X_COORDINATES_NODES[directed_adjacency_list[all_nodes][num]]
+                x_edges.append(x0)
+                x_edges.append(x1)
+                x_edges.append(None)
+                y0 = Y_COORDINATES_NODES[all_nodes]
+                y1 = Y_COORDINATES_NODES[directed_adjacency_list[all_nodes][num]]
+                y_edges.append(y0)
+                y_edges.append(y1)
+                y_edges.append(None)
+        else:
+            x0 = X_COORDINATES_NODES[all_nodes]
+            x1 = X_COORDINATES_NODES[directed_adjacency_list[all_nodes]]
+            x_edges.append(x0)
+            x_edges.append(x1)
+            x_edges.append(None)
+            y0 = Y_COORDINATES_NODES[all_nodes]
+            y1 = Y_COORDINATES_NODES[directed_adjacency_list[all_nodes]]
+            y_edges.append(y0)
+            y_edges.append(y1)
+            y_edges.append(None)
+
     edges_trace = go.Scatter(x=x_edges,
                              y=y_edges,
                              line=dict(width=0.5, color='#888'),
                              hoverinfo='none',
                              mode='lines')
-    
-    x_nodes = []
-    y_nodes = []
-
-    for node in G.nodes():
-        x,y = G.nodes[node]['pos']
-        x_nodes.append(x)
-        y_nodes.append(y)
 
     nodes_trace = go.Scatter(x=X_COORDINATES_NODES,
                              y=Y_COORDINATES_NODES,
@@ -314,7 +340,7 @@ graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCH
 
 # visualization
 
-#func_test_visualization(graph1)
+func_test_visualization(graph1)
 #func_visualization(graph1)
 
 # 2 strings below drawing graph by standart libraries
@@ -322,11 +348,13 @@ graph1 = func_initialization_directed_adjacency_matrix(COUNT_NODES, COUNT_BRANCH
 #plt.show()
 
 G = nx.random_geometric_graph(10, 0.125)
+print("G - graph")
 print(G.edges())
 print(G.nodes)
+print("graph1 - graph")
 print(graph1.edges())
 print(graph1.nodes)
-# ОСТАНОВИЛСЯ НА ЭТОМ МЕСТЕ!! ПЫТЮСЬ РАЗОБРАТЬСЯ С МАССИВОМ КООРДИНАТ УЗЛОВ
+
 X_COORDINATES_NODES = [2,5,25,45,5,25,45,5,25,45]
 Y_COORDINATES_NODES = [7,5,5,5,25,25,25,45,45,45]
 #for i in range(len(X_COORDINATES_NODES)):
