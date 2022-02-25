@@ -58,7 +58,6 @@ for potential in range(COUNT_NODES): # за данный проход форми
             if(directed_adjacency_matrix[node][potential] == 1):
                 import_array.append(node)
     for index_matrix in range(len(conductivity_matrix[potential])):
-        print(0)
         if (index_matrix == zero_potential):
             continue
         if (potential == index_matrix):
@@ -72,13 +71,28 @@ for potential in range(COUNT_NODES): # за данный проход форми
             else:
                 for imp_arr in range(len(import_array)):
                     conductivity_matrix[potential][index_matrix] += 1 / (graph[import_array[imp_arr]][potential]['resistance'])
-        else:
-            # if zepo_potential нужно
-
-        #conductivity_matrix[potential][index_matrix] = # temp note
+    if (len(export_array) == 1):
+        if (export_array[0] == zero_potential):
+            continue
+        conductivity_matrix[potential][export_array[0]] -= 1 / (graph[potential][export_array[0]]['resistance'])
+    else:
+        for exp_arr in range(len(export_array)):
+            if (export_array[exp_arr] == zero_potential):
+                continue
+            conductivity_matrix[potential][export_array[exp_arr]] -= 1 / (graph[potential][export_array[exp_arr]]['resistance'])
+    if (len(import_array) == 1):
+        if (import_array[0] == zero_potential):
+            continue
+        conductivity_matrix[potential][import_array[0]] -= 1 / (graph[import_array[0]][potential]['resistance'])
+    else:
+        for imp_arr in range(len(import_array)):
+            if (import_array[imp_arr] == zero_potential):
+                continue
+            conductivity_matrix[potential][import_array[imp_arr]] -= 1 / (graph[import_array[imp_arr]][potential]['resistance'])
     print("Конец итерации номер: ", potential + 1)
     export_array.clear()
     import_array.clear()
+print(conductivity_matrix)
 
 
 
