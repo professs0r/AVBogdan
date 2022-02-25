@@ -89,10 +89,12 @@ for potential in range(COUNT_NODES): # за данный проход форми
             if (import_array[imp_arr] == zero_potential):
                 continue
             conductivity_matrix[potential][import_array[imp_arr]] -= 1 / (graph[import_array[imp_arr]][potential]['resistance'])
+    for nodes_current_matrix in range(len(current_matrix)):
+        # FIX ME
+        pass
     print("Конец итерации номер: ", potential + 1)
     export_array.clear()
     import_array.clear()
-print(conductivity_matrix)
 
 
 
