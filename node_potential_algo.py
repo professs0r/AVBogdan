@@ -1,9 +1,7 @@
-import collections
-
 import numpy as np
 import networkx as nx
-import math
-from collections import Counter
+
+# start source data
 
 COUNT_NODES = 5
 COUNT_BRANCHES = 8
@@ -11,25 +9,23 @@ COUNT_BRANCHES = 8
 X_COORDINATES = [1, 25, 45, 65, 35]
 Y_COORDINATES = [1, 5, 5, 5, 15]
 
-directed_adjacency_list = np.array([(1),
-                                    (2,4),
-                                    (3,4),
-                                    (0),
-                                    (0,3)])
+directed_adjacency_list = np.array([1,
+                                    (2, 4),
+                                    (3, 4),
+                                    0,
+                                    (0, 3)])
 
-directed_adjacency_matrix = np.array([(0,1,0,0,0),
-                                      (0,0,1,0,1),
-                                      (0,0,0,1,1),
-                                      (1,0,0,0,0),
-                                      (1,0,0,1,0)])
+directed_adjacency_matrix = np.array([(0, 1, 0, 0, 0),
+                                      (0, 0, 1, 0, 1),
+                                      (0, 0, 0, 1, 1),
+                                      (1, 0, 0, 0, 0),
+                                      (1, 0, 0, 1, 0)])
 
-conductivity_matrix = np.zeros((COUNT_NODES-1, COUNT_NODES-1))
-current_matrix = np.zeros((COUNT_NODES-1, 1))
 
 def func_initialization(list, nodes, branches):
     graph = nx.DiGraph()
     for index in range(nodes):
-        graph.add_node(index, potential=index)
+        graph.add_node(index, potential=0)
     graph.add_edge(0, 1, resistance=0.1, voltage=630, type='СИП', length=1000, I=0)
     graph.add_edge(1, 2, resistance=1.17, voltage=0, type='СИП', length=1000, I=0)
     graph.add_edge(1, 4, resistance=2.87, voltage=0, type='СИП', length=1000, I=0)
@@ -40,10 +36,12 @@ def func_initialization(list, nodes, branches):
     graph.add_edge(4, 3, resistance=3.69, voltage=0, type='СИП', length=1000, I=0)
     return graph
 
+# stop source data
+
 graph = func_initialization(directed_adjacency_list, COUNT_NODES, COUNT_BRANCHES)
 
+# variant numer 1
 frequency_elememts = np.zeros((COUNT_NODES, 1))
-
 for edges in range(len(directed_adjacency_matrix)):
     for elements in range(len(directed_adjacency_matrix[edges])):
         if (directed_adjacency_matrix[edges][elements] == 1):
@@ -52,6 +50,11 @@ for edges in range(len(directed_adjacency_matrix)):
 
 zero_potential = int(max(frequency_elememts))
 
+# variant number 2
+zero_potential = COUNT_NODES - 1
+
+conductivity_matrix = np.zeros((COUNT_NODES-1, COUNT_NODES-1))
+current_matrix = np.zeros((COUNT_NODES-1, 1))
 export_array = []
 import_array = []
 for potential in range(COUNT_NODES): # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
@@ -112,13 +115,13 @@ for potential in range(COUNT_NODES): # за данный проход форми
 #print(conductivity_matrix)
 #print(current_matrix)
 potential_matrix = np.linalg.solve(conductivity_matrix, current_matrix)
-print(potential_matrix)
 
-index = 1
-#for branch in graph.edges():
-    #print("itteration: ", index)
-    #index += 1
-    #graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] + graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]]['resistance']
-    #print("branch[", branch[0], "]][branch[", branch[1], "]]['I'] = (", graph.nodes[branch[0]], " - ", graph.nodes[branch[1]], " + ", graph[branch[0]][branch[1]]['voltage'], ") / ", graph[branch[0]][branch[1]]['resistance'])
-    #print(graph.nodes[4])
-    #print(graph[branch[0]][branch[1]]['resistance'])
+for nodes in range(len(potential_matrix)):
+    graph.nodes[nodes]['potential'] = float(potential_matrix[nodes])
+
+for branch in graph.edges():
+    graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] + graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]]['resistance']
+    #print("I (", index, ") = ", graph[branch[0]][branch[1]]['I'])
+
+for branch in graph.edges():
+    print(graph.edges[branch])
