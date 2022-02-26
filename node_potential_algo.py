@@ -1,6 +1,9 @@
+import collections
+
 import numpy as np
 import networkx as nx
 import math
+from collections import Counter
 
 COUNT_NODES = 5
 COUNT_BRANCHES = 8
@@ -22,7 +25,6 @@ directed_adjacency_matrix = np.array([(0,1,0,0,0),
 
 conductivity_matrix = np.zeros((COUNT_NODES-1, COUNT_NODES-1))
 current_matrix = np.zeros((COUNT_NODES-1, 1))
-#potential_matrix = current_matrix / conductivity_matrix
 
 def func_initialization(list, nodes, branches):
     graph = nx.DiGraph()
@@ -40,13 +42,19 @@ def func_initialization(list, nodes, branches):
 
 graph = func_initialization(directed_adjacency_list, COUNT_NODES, COUNT_BRANCHES)
 
-# temporary initialization
-zero_potential = 4
+frequency_elememts = np.zeros((COUNT_NODES, 1))
+
+for edges in range(len(directed_adjacency_matrix)):
+    for elements in range(len(directed_adjacency_matrix[edges])):
+        if (directed_adjacency_matrix[edges][elements] == 1):
+            frequency_elememts[elements] += 1
+    frequency_elememts[edges] += np.sum(directed_adjacency_matrix[edges])
+
+zero_potential = int(max(frequency_elememts))
 
 export_array = []
 import_array = []
 for potential in range(COUNT_NODES): # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
-    print("potential ", potential + 1, ":\n")
     if (potential == zero_potential):
         continue
     for node in range(COUNT_NODES):
@@ -63,41 +71,48 @@ for potential in range(COUNT_NODES): # за данный проход форми
         if (potential == index_matrix):
             if (len(export_array) == 1):
                 conductivity_matrix[potential][index_matrix] += 1/(graph[potential][export_array[0]]['resistance'])
+                #current_matrix[potential] -= (graph[potential][export_array[0]]['voltage']) / (graph[potential][export_array[0]]['resistance'])
             else:
                 for exp_arr in range(len(export_array)):
                     conductivity_matrix[potential][index_matrix] += 1 / (graph[potential][export_array[exp_arr]]['resistance'])
+                    #current_matrix[potential] -= (graph[potential][export_array[exp_arr]]['voltage']) / (graph[potential][export_array[exp_arr]]['resistance'])
             if (len(import_array) == 1):
                 conductivity_matrix[potential][index_matrix] += 1 / (graph[import_array[0]][potential]['resistance'])
+                #current_matrix[potential] += (graph[import_array[0]][potential]['voltage']) / (graph[import_array[0]][potential]['resistance'])
             else:
                 for imp_arr in range(len(import_array)):
                     conductivity_matrix[potential][index_matrix] += 1 / (graph[import_array[imp_arr]][potential]['resistance'])
+                    #current_matrix[potential] += (graph[import_array[imp_arr]][potential]['voltage']) / (graph[import_array[imp_arr]][potential]['resistance'])
     if (len(export_array) == 1):
         if (export_array[0] == zero_potential):
             continue
         conductivity_matrix[potential][export_array[0]] -= 1 / (graph[potential][export_array[0]]['resistance'])
+        current_matrix[potential] -= (graph[potential][export_array[0]]['voltage']) / (graph[potential][export_array[0]]['resistance'])
     else:
         for exp_arr in range(len(export_array)):
             if (export_array[exp_arr] == zero_potential):
                 continue
             conductivity_matrix[potential][export_array[exp_arr]] -= 1 / (graph[potential][export_array[exp_arr]]['resistance'])
+            current_matrix[potential] -= (graph[potential][export_array[exp_arr]]['voltage']) / (graph[potential][export_array[exp_arr]]['resistance'])
     if (len(import_array) == 1):
         if (import_array[0] == zero_potential):
             continue
         conductivity_matrix[potential][import_array[0]] -= 1 / (graph[import_array[0]][potential]['resistance'])
+        current_matrix[potential] += (graph[import_array[0]][potential]['voltage']) / (graph[import_array[0]][potential]['resistance'])
     else:
         for imp_arr in range(len(import_array)):
             if (import_array[imp_arr] == zero_potential):
                 continue
             conductivity_matrix[potential][import_array[imp_arr]] -= 1 / (graph[import_array[imp_arr]][potential]['resistance'])
-    for nodes_current_matrix in range(len(current_matrix)):
-        # FIX ME
-        pass
-    print("Конец итерации номер: ", potential + 1)
+            current_matrix[potential] += (graph[import_array[imp_arr]][potential]['voltage']) / (graph[import_array[imp_arr]][potential]['resistance'])
+
     export_array.clear()
     import_array.clear()
 
-
-
+#print(conductivity_matrix)
+#print(current_matrix)
+potential_matrix = np.linalg.solve(conductivity_matrix, current_matrix)
+print(potential_matrix)
 
 index = 1
 #for branch in graph.edges():
