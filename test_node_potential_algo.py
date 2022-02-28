@@ -24,8 +24,6 @@ def func_list_to_matrix(adjacency_list):
                 adjacency_matrix[row][adjacency_list[row][column]] = 1
     return adjacency_matrix
 
-directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
-
 def func_initialization(list, nodes, branches):
     graph = nx.DiGraph()
     for index in range(nodes):
@@ -43,20 +41,56 @@ def func_initialization(list, nodes, branches):
     graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=1000, I=0)
     return graph
 
+def count_of_nodes(adjacency_matrix):
+    """
+    функция по матрице смежности считает сколько в графе узлов
+    :param adjacency_matrix:
+    :return: count_nodes
+    """
+    count_nodes = 0
+    temp_array = np.zeros((len(adjacency_matrix), 1))
+    for elements in range(len(adjacency_matrix)):
+        temp_array[elements] += sum(adjacency_matrix[elements])
+        for accord_elements in range(len(adjacency_matrix)):
+            if(accord_elements == elements):
+                continue
+            temp_array[elements] += adjacency_matrix[accord_elements][elements]
+    for index in range(temp_array.size):
+        if(temp_array[index] >= 3):
+            count_nodes += 1
+    return count_nodes
+
+def count_of_branches(adjacency_list):
+    """
+    функция по списку смежности считает количество ветвей (рёбер) в графе
+    :param adjacency_list:
+    :return: count_branches
+    """
+    branches = 0
+    for elements in range(adjacency_list.size):
+        if (isinstance(adjacency_list[elements], int)):
+            branches += 1
+            continue
+        branches += len(adjacency_list[elements])
+    return branches
+
 # stop source data
 
-graph = func_initialization(directed_adjacency_list, COUNT_NODES, COUNT_BRANCHES)
+directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
+count_nodes = count_of_nodes(directed_adjacency_matrix)
+count_branches = count_of_branches(directed_adjacency_list)
+graph = func_initialization(directed_adjacency_list, count_nodes, count_branches)
 
-zero_potential = COUNT_NODES - 1
+zero_potential = count_nodes - 1
 
-conductivity_matrix = np.zeros((COUNT_NODES-1, COUNT_NODES-1))
-current_matrix = np.zeros((COUNT_NODES-1, 1))
+conductivity_matrix = np.zeros((count_nodes-1, count_nodes-1))
+current_matrix = np.zeros((count_nodes-1, 1))
 export_array = []
 import_array = []
-for potential in range(COUNT_NODES): # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
+for potential in range(count_nodes): # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
     if (potential == zero_potential):
         continue
-    for node in range(COUNT_NODES):
+    for node in range(count_nodes):
         if (potential == node):
             for export_node in range(len(directed_adjacency_matrix[node])):
                 if(directed_adjacency_matrix[node][export_node] != 0):
