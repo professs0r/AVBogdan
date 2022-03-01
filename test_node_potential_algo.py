@@ -3,8 +3,31 @@ import networkx as nx
 
 # start source data
 
-COUNT_NODES = 7
-COUNT_BRANCHES = 11
+# template of edge
+#edge_0 = (source=0, finish=1, resistance=70.1, voltage=630, type='СИП', length=1000, I=0)
+edge_0 = (0, 1, 70.1, 630, 0, 1000, 0)
+edge_1 = (0, 3, 5.62, 220, 0, 1000, 0)
+edge_2 = (1, 2, 2.55, 0, 0, 1000, 0)
+edge_3 = (1, 4, 70, 0, 0, 1000, 0)
+edge_4 = (2, 3, 85.89, 0, 0, 1000, 0)
+edge_5 = (2, 6, 3.69, 0, 0, 1000, 0)
+edge_6 = (3, 6, 2.33, 0, 0, 1000, 0)
+edge_7 = (4, 0, 1.52, 0, 0, 1000, 0)
+edge_8 = (5, 1, 1.35, 380, 0, 1000, 0)
+edge_9 = (5, 4, 0.1, 0, 0, 1000, 0)
+edge_10 = (6, 5, 0.84, 0, 0, 1000, 0)
+
+edges = np.array([edge_0,
+                  edge_1,
+                  edge_2,
+                  edge_3,
+                  edge_4,
+                  edge_5,
+                  edge_6,
+                  edge_7,
+                  edge_8,
+                  edge_9,
+                  edge_10])
 
 directed_adjacency_list = np.array([(1, 3),
                                     (2, 4),
@@ -13,6 +36,21 @@ directed_adjacency_list = np.array([(1, 3),
                                     (0),
                                     (1, 4),
                                     (5)])
+print(type(directed_adjacency_list[0]))
+
+def func_initialization_adjacency_list(edges):
+    """
+    функция, которая на основе списка рёбер создаёт список смежности (первичный [исходный])
+    :param edges: список рёбер (каждый элемент списка содержит в себе сведения о ребер: длина, ток, наяпржение)
+    :return: список смежности
+    """
+    adjacency_list = np.empty((len(edges), 1))
+    for all_edges in range(len(edges)):
+        temp_tuple = (edges[all_edges][0], edges[all_edges][1])
+        # FIX ME
+        #np.append(adjacency_list, temp_tuple)
+    print(adjacency_list)
+    return adjacency_list
 
 def func_list_to_matrix(adjacency_list):
     adjacency_matrix = np.zeros((len(adjacency_list), len(adjacency_list)))
@@ -25,6 +63,30 @@ def func_list_to_matrix(adjacency_list):
     return adjacency_matrix
 
 def func_initialization(list, nodes, branches):
+    graph = nx.DiGraph()
+    for index in range(nodes):
+        graph.add_node(index, potential=0)
+    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=1000, I=0)
+    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=1000, I=0)
+    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=1000, I=0)
+    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1000, I=0)
+    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=1000, I=0)
+    return graph
+
+def func_initialization_v2(list, nodes, branches):
+    """
+    функция инициализации ориентированного графа
+    :param list: список смежности
+    :param nodes: количество узлов в графе
+    :param branches: количество ветвей в графе
+    :return: ориентированный граф
+    """
     graph = nx.DiGraph()
     for index in range(nodes):
         graph.add_node(index, potential=0)
@@ -76,10 +138,12 @@ def count_of_branches(adjacency_list):
 
 # stop source data
 
+temp_list = func_initialization_adjacency_list(edges)
 directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
 count_nodes = count_of_nodes(directed_adjacency_matrix)
 count_branches = count_of_branches(directed_adjacency_list)
 graph = func_initialization(directed_adjacency_list, count_nodes, count_branches)
+graph_v2 = func_initialization_v2(directed_adjacency_list, count_nodes, count_branches)
 
 zero_potential = count_nodes - 1
 
