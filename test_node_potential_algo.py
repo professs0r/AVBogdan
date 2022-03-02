@@ -29,6 +29,10 @@ edges = np.array([edge_0,
                   edge_9,
                   edge_10])
 
+# stop source data
+
+# start functions and support elements
+
 directed_adjacency_list = np.array([(1, 3),
                                     (2, 4),
                                     (3, 6),
@@ -36,7 +40,6 @@ directed_adjacency_list = np.array([(1, 3),
                                     (0),
                                     (1, 4),
                                     (5)])
-print(type(directed_adjacency_list[0]))
 
 def func_initialization_adjacency_list(edges):
     """
@@ -45,10 +48,14 @@ def func_initialization_adjacency_list(edges):
     :return: список смежности
     """
     adjacency_list = np.empty((len(edges), 1))
+    temp_array_edges = []
     for all_edges in range(len(edges)):
-        temp_tuple = (edges[all_edges][0], edges[all_edges][1])
-        # FIX ME
-        #np.append(adjacency_list, temp_tuple)
+        temp_tuple = (int(edges[all_edges][0]), int(edges[all_edges][1]))
+        temp_array_edges.append(temp_tuple)
+    temp_array_adjacency = []
+    for element in range(len(temp_array_edges)):
+        temp_array_adjacency[temp_array_edges[element][0]] += (temp_array_edges[element][1],)
+    adjacency_list = np.asarray(temp_array_adjacency)
     print(adjacency_list)
     return adjacency_list
 
@@ -136,7 +143,9 @@ def count_of_branches(adjacency_list):
         branches += len(adjacency_list[elements])
     return branches
 
-# stop source data
+# end functions and support elements
+
+# running algorithm
 
 temp_list = func_initialization_adjacency_list(edges)
 directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
