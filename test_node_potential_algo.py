@@ -1,5 +1,6 @@
 import numpy as np
 import networkx as nx
+import operator
 
 # start source data
 
@@ -47,22 +48,28 @@ def func_initialization_adjacency_list(edges):
     :param edges: список рёбер (каждый элемент списка содержит в себе сведения о ребер: длина, ток, наяпржение)
     :return: список смежности
     """
+    # FIX ME!!!
     adjacency_list = np.empty((len(edges), 1))
     temp_array_edges = []
     for all_edges in range(len(edges)):
         temp_tuple = (int(edges[all_edges][0]), int(edges[all_edges][1]))
         temp_array_edges.append(temp_tuple)
+    max_num_of_node = max(temp_array_edges, key=operator.itemgetter(0))
     temp_array_adjacency = []
-    for element in range(len(temp_array_edges)):
-        temp_array_adjacency[temp_array_edges[element][0]] += (temp_array_edges[element][1],)
+    for element in range(max(max_num_of_node) + 1):
+        temp_tuple = ()
+        for index in range(len(temp_array_edges)):
+            if element == temp_array_edges[index][0]:
+                temp_tuple += (temp_array_edges[index][1], )
+        temp_array_adjacency.append(temp_tuple)
     adjacency_list = np.asarray(temp_array_adjacency)
-    print(adjacency_list)
     return adjacency_list
 
 def func_list_to_matrix(adjacency_list):
     adjacency_matrix = np.zeros((len(adjacency_list), len(adjacency_list)))
     for row in range(len(adjacency_list)):
-        if (isinstance(adjacency_list[row], int)):
+        #if (isinstance(adjacency_list[row], int)): tested commentary (this working code)
+        if(len(adjacency_list[row]) == 1):
             adjacency_matrix[row][adjacency_list[row]] = 1
         else:
             for column in range(len(adjacency_list[row])):
@@ -148,7 +155,9 @@ def count_of_branches(adjacency_list):
 # running algorithm
 
 temp_list = func_initialization_adjacency_list(edges)
-directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
+directed_adjacency_list = temp_list # tested!!!!
+directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)    # tested!!!!
+#directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
 count_nodes = count_of_nodes(directed_adjacency_matrix)
 count_branches = count_of_branches(directed_adjacency_list)
 graph = func_initialization(directed_adjacency_list, count_nodes, count_branches)
