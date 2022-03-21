@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
 import operator
+from collections import deque
 
 # start source data
 
@@ -206,6 +207,59 @@ def count_of_branches(adjacency_list):
         branches += len(adjacency_list[elements])
     return branches
 
+def func_DFS(graph, node, visited):
+    """
+    обход графа в глубину
+    :param graph: неориентированный граф
+    :param node: рассматриваемый узел
+    :param visited: список уже посещённых узлов
+    :return:
+    """
+    if node in visited:
+        return
+    visited.add(node)
+    for neighbour in graph[node]:
+        if neighbour not in visited:
+            func_DFS(graph, neighbour, visited)
+
+def func_run_DFS(graph):
+    """
+    функция, которая запускает функцию обхода графа в глубину через цикл
+    :param graph: неориентированный граф
+    :return:
+    """
+    visited = set()
+    N = 0
+    for node in graph:
+        if node not in visited:
+            func_DFS(graph, node, visited)
+            N += 1
+    print(visited)
+    print("Количество компонент связности = ", N)
+
+def func_BFS(graph):
+    """
+    обход графа в ширину
+    :param graph: граф
+    :return:
+    """
+
+def func_Kirchhoff(adjacency_matrix):
+    """
+    матричная теорема о деревьях Кирхгофа
+    :param adjacency_matrix: матрица смежности
+    :return:
+    """
+    matrix_Kirchoff = adjacency_matrix[:]
+    matrix_Kirchoff *= -1
+    for diagonal in range(len(matrix_Kirchoff)):
+        temp_sum = sum(matrix_Kirchoff)
+        matrix_Kirchoff[diagonal][diagonal] = -1 * sum(matrix_Kirchoff[diagonal])
+    temp1 = np.delete(matrix_Kirchoff, 0, 0)
+    temp2 = np.delete(temp1, 0, 1)
+    print("Количество остовных деревьев = ", np.linalg.det(temp2))
+
+
 # end functions and support elements
 
 # running algorithm
@@ -217,6 +271,11 @@ def count_of_branches(adjacency_list):
 
 test = func_initialization_undirected_adjacency_list(edges)
 test_matrix = func_list_to_matrix(test)
+Kirchhoff = func_Kirchhoff(test_matrix)
+test_count_nodes = count_of_nodes(test_matrix)
+test_count_branches = count_of_branches(test)
+test_graph = func_initialization_undirected_graph(edges, test_count_nodes, 11)
+func_run_DFS(test_graph)
 
 # teseted
 # teseted
