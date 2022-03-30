@@ -207,6 +207,23 @@ def count_of_branches(adjacency_list):
         branches += len(adjacency_list[elements])
     return branches
 
+def func_count_of_undirected_branches(directed_adjacency_matrix):
+    """
+    функция подсчёта количества рёбер в неориентированном графе
+    :param directed_adjacency_matrix: матрица смежности для неориентированного графа
+    :return: количество ветвей
+    WORKING!!!
+    """
+    index = 0
+    count_of_branches = 0
+    for index in range(directed_adjacency_matrix[0].size):
+        iterator = index
+        while iterator < directed_adjacency_matrix[0].size:
+            if directed_adjacency_matrix[index][iterator] == 1:
+                count_of_branches += 1
+            iterator += 1
+    return count_of_branches
+
 def func_DFS(graph, node, visited):
     """
     обход графа в глубину
@@ -243,6 +260,22 @@ def func_BFS(graph):
     :param graph: граф
     :return:
     """
+    start = 0
+    visited = {start}
+    to_explore = [start]
+    lens = dict()
+    lens[start] = 0
+    prev = dict()
+    prev[start] = start
+    while to_explore:
+        next = to_explore.pop(0)
+        new_vertexes = [i for i in graph[next] if i not in visited]
+        for i in new_vertexes:
+            lens[i] = lens[next] + 1
+            prev[i] = next
+        to_explore.extend(new_vertexes)
+        visited.update(new_vertexes)
+    return lens, prev
 
 def func_Kirchhoff(adjacency_matrix):
     """
@@ -250,14 +283,15 @@ def func_Kirchhoff(adjacency_matrix):
     :param adjacency_matrix: матрица смежности
     :return:
     """
-    matrix_Kirchoff = adjacency_matrix[:]
+    matrix_Kirchoff = adjacency_matrix.copy()
     matrix_Kirchoff *= -1
     for diagonal in range(len(matrix_Kirchoff)):
         temp_sum = sum(matrix_Kirchoff)
         matrix_Kirchoff[diagonal][diagonal] = -1 * sum(matrix_Kirchoff[diagonal])
     temp1 = np.delete(matrix_Kirchoff, 0, 0)
     temp2 = np.delete(temp1, 0, 1)
-    print("Количество остовных деревьев = ", np.linalg.det(temp2))
+    print("Количество остовных деревьев = ", int(np.linalg.det(temp2)))
+    return int(np.linalg.det(temp2))
 
 
 # end functions and support elements
@@ -274,8 +308,10 @@ test_matrix = func_list_to_matrix(test)
 Kirchhoff = func_Kirchhoff(test_matrix)
 test_count_nodes = count_of_nodes(test_matrix)
 test_count_branches = count_of_branches(test)
+test_count_branches_v2 = func_count_of_undirected_branches(test_matrix)
 test_graph = func_initialization_undirected_graph(edges, test_count_nodes, 11)
 func_run_DFS(test_graph)
+print(func_BFS(test_graph))
 
 # teseted
 # teseted
