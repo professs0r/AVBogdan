@@ -1,23 +1,22 @@
 import numpy as np
 import networkx as nx
 import operator
-from collections import deque
 
 # start source data
 
 # template of edge
-#edge_0 = (source=0, finish=1, resistance=70.1, voltage=630, type='СИП', length=1000, I=0)
-edge_0 = (0, 1, 70.1, 630, 0, 1000, 0)
-edge_1 = (0, 3, 5.62, 220, 0, 1000, 0)
-edge_2 = (1, 2, 2.55, 0, 0, 1000, 0)
-edge_3 = (1, 4, 70, 0, 0, 1000, 0)
-edge_4 = (2, 3, 85.89, 0, 0, 1000, 0)
-edge_5 = (2, 6, 3.69, 0, 0, 1000, 0)
-edge_6 = (3, 6, 2.33, 0, 0, 1000, 0)
-edge_7 = (4, 0, 1.52, 0, 0, 1000, 0)
-edge_8 = (5, 1, 1.35, 380, 0, 1000, 0)
-edge_9 = (5, 4, 0.1, 0, 0, 1000, 0)
-edge_10 = (6, 5, 0.84, 0, 0, 1000, 0)
+#edge_0 = (source=0, finish=1, resistance=70.1, voltage=630, type='СИП', length=1000, cross_section=35, I=0)
+edge_0 = (0, 1, 70.1, 630, 0, 1000, 35, 0)
+edge_1 = (0, 3, 5.62, 220, 0, 1000, 35, 0)
+edge_2 = (1, 2, 2.55, 0, 0, 1000, 35, 0)
+edge_3 = (1, 4, 70, 0, 0, 1000, 35, 0)
+edge_4 = (2, 3, 85.89, 0, 0, 1000, 35, 0)
+edge_5 = (2, 6, 3.69, 0, 0, 1000, 35, 0)
+edge_6 = (3, 6, 2.33, 0, 0, 1000, 35, 0)
+edge_7 = (4, 0, 1.52, 0, 0, 1000, 35, 0)
+edge_8 = (5, 1, 1.35, 380, 0, 1000, 35, 0)
+edge_9 = (5, 4, 0.1, 0, 0, 1000, 35, 0)
+edge_10 = (6, 5, 0.84, 0, 0, 1000, 35, 0)
 
 edges = np.array([edge_0,
                   edge_1,
@@ -115,18 +114,18 @@ def func_initialization(list, nodes, branches):
     """
     graph = nx.DiGraph()
     for index in range(nodes):
-        graph.add_node(index, potential=0)
-    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=1000, I=0)
-    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=1000, I=0)
-    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=1000, I=0)
-    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=1000, I=0)
+        graph.add_node(index, potential=0, active=15)
+    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
     return graph
 
 def func_initialization_undirected_graph(list, nodes, branches):
@@ -141,10 +140,10 @@ def func_initialization_undirected_graph(list, nodes, branches):
     """
     graph= nx.Graph()
     for index in range(nodes):
-        graph.add_node(index, potential=0)
+        graph.add_node(index, potential=0, active=15)
     for branch in range(branches):
         graph.add_edge(list[branch][0], list[branch][1], resistance=list[branch][2], voltage=list[branch][3],
-                       type=list[branch][4], length=list[branch][5], I=list[branch][6])
+                       type=list[branch][4], length=list[branch][5], cross_section=list[branch][6], I=list[branch][7])
     return graph
 
 def func_initialization_v2(list, nodes, branches):
@@ -158,18 +157,18 @@ def func_initialization_v2(list, nodes, branches):
     """
     graph = nx.DiGraph()
     for index in range(nodes):
-        graph.add_node(index, potential=0)
-    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=1000, I=0)
-    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=1000, I=0)
-    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=1000, I=0)
-    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1000, I=0)
-    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=1000, I=0)
+        graph.add_node(index, potential=0, active=15)
+    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
+    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=1000, cross_section=35, I=0)
     return graph
 
 def count_of_nodes(adjacency_matrix):
