@@ -292,6 +292,43 @@ def func_Kirchhoff(adjacency_matrix):
     print("Количество остовных деревьев = ", int(np.linalg.det(temp2)))
     return int(np.linalg.det(temp2))
 
+def func_find(number, A):
+    """
+    ищет number в A и возвращает True - если есть такой
+    False - если такого нет
+    :param number:
+    :param A:
+    :return:
+    FIX ME!!!
+    """
+    flag = False
+    for x in A:
+        if number == x:
+            flag = True
+            break
+    return flag
+
+def func_permutations(N:int, M:int, prefix=None):
+    """
+    генерация всех перестановок N чисел в M позициях, с префиксом prefix
+    :param N:
+    :param M:
+    :param prefix:
+    :return:
+    FIX ME!!!
+    """
+    M = N if M == -1 else M  # по умолчанию N чисел в N позициях
+    prefix = prefix or []
+    if M == 0:
+        print(prefix)
+        return
+    for number in range(1, N + 1):
+        if func_find(number, prefix):
+            continue
+        prefix.append(number)
+        func_permutations(N, M - 1, prefix)
+        prefix.pop()
+
 
 # end functions and support elements
 
