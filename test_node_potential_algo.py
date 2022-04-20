@@ -2,28 +2,35 @@ import numpy as np
 import networkx as nx
 import operator
 import math
+import matplotlib.pyplot as plt
 
 #GLOBAL VARIABLES
 x_0 = 0.336                                                                # for AL (D = 600 mm) cross_section = 35 mm^2
 resistance_Al = 0.028                                                                                       # Ohm*mm^2/m
 resistance_Cu = 0.0175                                                                                      # Ohm*mm^2/m
+k_form = 4/3                                                                                          # form coefficient
+k_z = 0.5                                                                                    # coefficient complete form
+k_konf = 0.99                                                      # coefficient configuration active and reactive power
+delta_p_l_y_6 = 0.0000308                 # кВт*ч/(м*ч) удельные годовые потери ЭЭ от токов утечки по изоляторам ВЛ-6 кВ
+delta_p_l_y_10 = 0.0000502                # кВт*ч/(м*ч) удельные годовые потери ЭЭ от токов утечки по изоляторам ВЛ-6 кВ
 
 # start source data
 
 # template of edge
 #edge_0 = (source=0, finish=1, resistance=70.1, voltage=630, type='СИП', length=1000, cross_section=35, I=0,
-#          material=Al, r_0=0 (calculated), x_0=0 (calculated), cos_y=0.89, sin_y=0 (calculated))
-edge_0 = (0, 1, 70.1, 630, 0, 701, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_1 = (0, 3, 5.62, 220, 0, 56.2, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_2 = (1, 2, 2.55, 0, 0, 25.5, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_3 = (1, 4, 70, 0, 0, 700, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_4 = (2, 3, 85.89, 0, 0, 858.9, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_5 = (2, 6, 3.69, 0, 0, 36.9, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_6 = (3, 6, 2.33, 0, 0, 23.3, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_7 = (4, 0, 1.52, 0, 0, 15.2, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_8 = (5, 1, 1.35, 380, 0, 13.5, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_9 = (5, 4, 0.1, 0, 0, 1, 35, 0, 'Al', 0, 0, 0.89, 0)
-edge_10 = (6, 5, 0.84, 0, 0, 8.4, 35, 0, 'Al', 0, 0, 0.89, 0)
+#          material=Al, r_0=0 (calculated), x_0=0 (calculated), cos_y=0.89, sin_y=0 (calculated),
+#          lose_volt=0 (calculated), lose_energy=0 (calculated))
+edge_0 = (0, 1, 70.1, 630, 0, 701, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_1 = (0, 3, 5.62, 220, 0, 56.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_2 = (1, 2, 2.55, 0, 0, 25.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_3 = (1, 4, 70, 0, 0, 700, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_4 = (2, 3, 85.89, 0, 0, 858.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_5 = (2, 6, 3.69, 0, 0, 36.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_6 = (3, 6, 2.33, 0, 0, 23.3, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_7 = (4, 0, 1.52, 0, 0, 15.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_8 = (5, 1, 1.35, 380, 0, 13.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_9 = (5, 4, 0.1, 0, 0, 1, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_10 = (6, 5, 0.84, 0, 0, 8.4, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 
 edges = np.array([edge_0,
                   edge_1,
@@ -71,6 +78,39 @@ def func_initialization_adjacency_list(edges):
         temp_array_adjacency.append(temp_tuple)
     adjacency_list = np.asarray(temp_array_adjacency)
     return adjacency_list
+
+def func_directed_to_nondirected_adjacency_list(directed_adjacency_list):
+    """
+    функция, которая на основе списка (ориентированного) смежности графа, возвращает список смежности неориентиро-
+    ванного графа
+    :param directed_adjacency_list:
+    :return:
+    WORKING CORRECT!!
+    """
+    nondirected_adjacency_list = directed_adjacency_list.copy()
+    for nodes in range(len(directed_adjacency_list)):
+        temp_tuple = ()
+        for points in range(len(directed_adjacency_list)):
+            if nodes == points:
+                continue
+            else:
+                if (isinstance(directed_adjacency_list[points], int)):
+                    if nodes == directed_adjacency_list[points]:
+                        temp_tuple += (int(points),)
+                    continue
+                if nodes in directed_adjacency_list[points]:
+                    temp_tuple += (int(points), )
+        if (isinstance(directed_adjacency_list[nodes], int)):
+            temp_tuple += (directed_adjacency_list[nodes],)
+            nondirected_adjacency_list[nodes] = tuple(sorted(temp_tuple))
+        else:
+            if (isinstance(temp_tuple, int)):
+                nondirected_adjacency_list[nodes] += temp_tuple
+                nondirected_adjacency_list[nodes] = tuple(sorted(nondirected_adjacency_list[nodes]))
+            else:
+                nondirected_adjacency_list[nodes] += temp_tuple
+                nondirected_adjacency_list[nodes] = tuple(sorted(nondirected_adjacency_list[nodes]))
+    return nondirected_adjacency_list
 
 def func_initialization_undirected_adjacency_list(edges):                    # ВОЗМОЖНО, НУЖНО БУДЕТ УДАЛИТЬ ЭТУ ФУНКЦИЮ
     """
@@ -122,17 +162,17 @@ def func_initialization(list, nodes, branches):
     graph = nx.DiGraph()
     for index in range(nodes):
         graph.add_node(index, potential=0, active=15)
-    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=701, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=56.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=25.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=700, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=858.9, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=36.9, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=23.3, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=15.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=13.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=8.4, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
+    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=701, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=56.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=25.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=700, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=858.9, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=36.9, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=23.3, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=15.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=13.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
+    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=8.4, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
     return graph
 
 def func_initialization_undirected_graph(list, nodes, branches):
@@ -143,39 +183,39 @@ def func_initialization_undirected_graph(list, nodes, branches):
     :param nodes: количество вершин графа (узлов схемы)
     :param branches: количество рёбер графа (ветвей схемы)
     :return: неориентированный граф
-    WORKING CORRECT!
+    FIX ME!!
     """
     graph= nx.Graph()
     for index in range(nodes):
         graph.add_node(index, potential=0, active=15)
     for branch in range(branches):
-        graph.add_edge(list[branch][0], list[branch][1], resistance=list[branch][2], voltage=list[branch][3],
-                       type=list[branch][4], length=list[branch][5], cross_section=list[branch][6], I=list[branch][7])
+        graph.add_edge(int(list[branch][0]), int(list[branch][1]), resistance=float(list[branch][2]),
+                       voltage=float(list[branch][3]), type=list[branch][4], length=float(list[branch][5]),
+                       cross_section=float(list[branch][6]), I=float(list[branch][7]), material=list[branch][8],
+                       r_0=float(list[branch][9]), x_0=float(list[branch][10]), cos_y=float(list[branch][11]),
+                       sin_y=float(list[branch][12]), lose_volt=float(list[branch][13]),
+                       lose_energy=float(list[branch][14]))
     return graph
 
-def func_initialization_v2(list, nodes, branches):
+def func_initialization_directed_graph(list, nodes, branches):
     """
-    функция инициализации ориентированного графа
-    :param list: список смежности
-    :param nodes: количество узлов в графе
-    :param branches: количество ветвей в графе
+    функция, которая на основе списка смежности, а также сведений о количестве узлов и ветвей создаёт ориентированный
+    граф
+    :param list: список рёбер графа, с дополнительной информацией
+    :param nodes: количество вершин графа (узлов схемы)
+    :param branches: количество рёбер графа (ветвей схемы)
     :return: ориентированный граф
-    WORKING CORRECT!
     """
-    graph = nx.DiGraph()
+    graph= nx.DiGraph()
     for index in range(nodes):
         graph.add_node(index, potential=0, active=15)
-    graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=701, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=56.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=25.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(1, 4, resistance=70, voltage=0, type='СИП', length=700, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(2, 3, resistance=85.89, voltage=0, type='СИП', length=858.9, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(2, 6, resistance=3.69, voltage=0, type='СИП', length=36.9, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(3, 6, resistance=2.33, voltage=0, type='СИП', length=23.3, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(4, 0, resistance=1.52, voltage=0, type='СИП', length=15.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(5, 1, resistance=1.35, voltage=380, type='СИП', length=13.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(5, 4, resistance=0.1, voltage=0, type='СИП', length=1, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
-    graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=8.4, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0)
+    for branch in range(branches):
+        graph.add_edge(int(list[branch][0]), int(list[branch][1]), resistance=float(list[branch][2]),
+                       voltage=float(list[branch][3]), type=list[branch][4], length=float(list[branch][5]),
+                       cross_section=float(list[branch][6]), I=float(list[branch][7]), material=list[branch][8],
+                       r_0=float(list[branch][9]), x_0=float(list[branch][10]), cos_y=float(list[branch][11]),
+                       sin_y=float(list[branch][12]), lose_volt=float(list[branch][13]),
+                       lose_energy=float(list[branch][14]))
     return graph
 
 def count_of_nodes(adjacency_matrix):
@@ -210,7 +250,7 @@ def count_of_branches(adjacency_list):
         if (isinstance(adjacency_list[elements], int)):
             branches += 1
             continue
-        branches += int(sum(adjacency_list[elements]))
+        branches += int(len(adjacency_list[elements]))
     return branches
 
 def func_count_of_undirected_branches(directed_adjacency_matrix):
@@ -312,10 +352,10 @@ def func_calculating_support_variables(graph):
             graph[g[0]][g[1]]['r_0'] = resistance_Al/graph[g[0]][g[1]]['cross_section']
         else:
             graph[g[0]][g[1]]['r_0'] = resistance_Cu / graph[g[0]][g[1]]['cross_section']
-        graph[g[0]][g[1]]['x_0'] = 0.336
+        graph[g[0]][g[1]]['x_0'] = 0.000336
         graph[g[0]][g[1]]['sin_y'] = math.sqrt(pow(1, 2) - pow(graph[g[0]][g[1]]['cos_y'], 2))
         # при необходимости, строку ниже можно закомментировать, чтобы использовать заданные значения
-        graph[g[0]][g[1]]['resistance'] = graph[g[0]][g[1]]['r_0'] * graph[g[0]][g[1]]['length']
+        #graph[g[0]][g[1]]['resistance'] = graph[g[0]][g[1]]['r_0'] * graph[g[0]][g[1]]['length']
 
 def func_loses_voltage(graph):
     """
@@ -323,29 +363,41 @@ def func_loses_voltage(graph):
     :param graph: directed graph
     :return:
     """
-    count_of_start_points = 0
-    temp_array = []
-    for count in graph.edges():
-        if graph.edges[count]['voltage'] != 0:
-            temp_array.append(count[0])
-            count_of_start_points += 1
-    points_queue = np.asarray(temp_array)
-    for start_point in points_queue:
-        length_array, adjacency_array = func_BFS(graph, start_point)
-        for key in adjacency_array:
-            if key == adjacency_array[key]:
-                continue
-            loses_voltage_abs = math.sqrt(3)*graph[adjacency_array[key]][key]['I']*graph[adjacency_array[key]][key]['length']*\
-                                (graph[adjacency_array[key]][key]['r_0']*graph[adjacency_array[key]][key]['cos_y'] +
-                                 graph[adjacency_array[key]][key]['x_0']*graph[adjacency_array[key]][key]['sin_y'])
-            loses_voltage_percent = 100*loses_voltage_abs/630
-            print(loses_voltage_percent)
+    print("func_loses_voltage")
+    for edge in graph.edges():
+        graph[edge[0]][edge[1]]['lose_volt'] = math.sqrt(3) * graph[edge[0]][edge[1]]['I'] * graph[edge[0]][edge[1]]['length'] * \
+                            (graph[edge[0]][edge[1]]['r_0'] * graph[edge[0]][edge[1]]['cos_y'] +
+                             graph[edge[0]][edge[1]]['x_0'] * graph[edge[0]][edge[1]]['sin_y'])
+        print(graph[edge[0]][edge[1]]['lose_volt'])
+
+def func_loses_energy_400(graph):
+    """
+    function which calculate loses energy in directed graph
+    :param graph:
+    :return:
+    """
+    print("func_loses_energy_400")
+    # примем расчётное время за величину в 1 час
+    T_p = 1
+    for edge in graph.edges():
+        graph[edge[0]][edge[1]]['lose_energy'] = (3*k_konf*k_form*T_p*graph[edge[0]][edge[1]]['r_0']*
+                                                  graph[edge[0]][edge[1]]['length']*
+                                                  graph[edge[0]][edge[1]]['I'])/(1000)
+        """
+        вариант с величиной потребляемой энергии по приборам учёта (вместо тока)
+        graph[edge[0]][edge[1]]['lose_energy'] = (k_konf*k_form*pow(graph[edge[0]][edge[1]]['energy'], 2)*
+                                                  graph[edge[0]][edge[1]]['r_0']
+                                                  graph[edge[0]][edge[1]]['length'])/(1000*T_p*
+                                                  pow((0.4*graph[edge[0]][edge[1]]['cos_y']), 2))
+        """
+        print(graph[edge[0]][edge[1]]['lose_energy'])
 
 def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potential, directed_adjacency_matrix):
     """
     method node potential
     :return:
     """
+    print("func_calculated_current_node_potential_algo")
     conductivity_matrix = np.zeros((count_nodes - 1, count_nodes - 1))
     current_matrix = np.zeros((count_nodes - 1, 1))
     export_array = []
@@ -419,8 +471,8 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
                                             graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
                                                'resistance']
 
-    #for branch in graph.edges():
-        #print(graph.edges[branch])
+    for branch in graph.edges():
+        print(graph.edges[branch])
 
 def func_find(number, A):
     """
@@ -469,13 +521,14 @@ def func_permutations(N:int, M:int, prefix=None):
 # teseted
 # teseted
 
-mat = func_list_to_matrix(directed_adjacency_list)
-n = count_of_nodes(mat)
-b = count_of_branches(mat)
-test_directed_graph = func_initialization(directed_adjacency_list,n,b)
-func_calculating_support_variables(test_directed_graph)
-func_calculated_current_node_potential_algo(test_directed_graph,n,n-1,mat)
-func_loses_voltage(test_directed_graph)
+adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
+nodes = count_of_nodes(adjacency_matrix)
+branches = count_of_branches(directed_adjacency_list)
+graph = func_initialization_directed_graph(edges, nodes, branches)
+func_calculating_support_variables(graph)
+func_calculated_current_node_potential_algo(graph, nodes, nodes-1, adjacency_matrix)
+func_loses_voltage(graph)
+func_loses_energy_400(graph)
 
 # teseted
 # teseted
