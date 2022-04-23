@@ -370,9 +370,35 @@ def func_loses_voltage(graph):
                              graph[edge[0]][edge[1]]['x_0'] * graph[edge[0]][edge[1]]['sin_y'])
         print(graph[edge[0]][edge[1]]['lose_volt'])
 
+def func_loses_energy_high(graph):
+    """
+    function which calculate loses energy in directed graph (for voltage 1000 V and high)
+    :param graph:
+    :return:
+    """
+    print("func_loses_energy_high_voltage")
+    # табличная величина зависит от сечения проводника, типа проводника (ВЛ или КЛ) и напряжения
+    delta_lose = 0
+    # примем расчётное время за величину в 1 час
+    T_p = 1
+    for edge in graph.edges():
+        graph[edge[0]][edge[1]]['lose_energy'] = ((3*k_konf*k_form*T_p*graph[edge[0]][edge[1]]['r_0']*
+                                                  graph[edge[0]][edge[1]]['length']*
+                                                  pow(graph[edge[0]][edge[1]]['I']), 2)/(1000)) + (delta_lose*
+                                                  graph[edge[0]][edge[1]]['length']*T_p)
+        """
+        вариант с величиной потребляемой энергии по приборам учёта (вместо тока)
+        graph[edge[0]][edge[1]]['lose_energy'] = ((k_konf*k_form*pow(graph[edge[0]][edge[1]]['energy'], 2)*
+                                                  graph[edge[0]][edge[1]]['r_0']
+                                                  graph[edge[0]][edge[1]]['length'])/(1000*T_p*
+                                                  pow((0.4*graph[edge[0]][edge[1]]['cos_y']), 2))) + (delta_lose*
+                                                  graph[edge[0]][edge[1]]['length']*T_p)
+        """
+        print(graph[edge[0]][edge[1]]['lose_energy'])
+
 def func_loses_energy_400(graph):
     """
-    function which calculate loses energy in directed graph
+    function which calculate loses energy in directed graph (for voltage 400 V)
     :param graph:
     :return:
     """
@@ -382,7 +408,7 @@ def func_loses_energy_400(graph):
     for edge in graph.edges():
         graph[edge[0]][edge[1]]['lose_energy'] = (3*k_konf*k_form*T_p*graph[edge[0]][edge[1]]['r_0']*
                                                   graph[edge[0]][edge[1]]['length']*
-                                                  graph[edge[0]][edge[1]]['I'])/(1000)
+                                                  pow(graph[edge[0]][edge[1]]['I'], 2))/(1000)
         """
         вариант с величиной потребляемой энергии по приборам учёта (вместо тока)
         graph[edge[0]][edge[1]]['lose_energy'] = (k_konf*k_form*pow(graph[edge[0]][edge[1]]['energy'], 2)*
@@ -391,6 +417,36 @@ def func_loses_energy_400(graph):
                                                   pow((0.4*graph[edge[0]][edge[1]]['cos_y']), 2))
         """
         print(graph[edge[0]][edge[1]]['lose_energy'])
+
+def func_loses_energy_220(graph):
+    """
+    function which calculate loses energy in directed graph (for voltage 220 V)
+    :param graph:
+    :return:
+    """
+    print("func_loses_energy_220")
+    # примем расчётное время за величину в 1 час
+    T_p = 1
+    for edge in graph.edges():
+        graph[edge[0]][edge[1]]['lose_energy'] = 2*(k_konf*k_form*T_p*graph[edge[0]][edge[1]]['r_0']*
+                                                    graph[edge[0]][edge[1]]['length']*
+                                                    pow(graph[edge[0]][edge[1]]['I']), 2)/(1000)
+        """
+        вариант с величиной потребляемой энергии по приборам учёта (вместо тока)
+        graph[edge[0]][edge[1]]['lose_energy'] = 2*(k_konf*k_form*pow(graph[edge[0]][edge[1]]['energy'], 2)*
+                                                    graph[edge[0]][edge[1]]['r_0']
+                                                    graph[edge[0]][edge[1]]['length'])/(1000*T_p*
+                                                    pow((0.4*graph[edge[0]][edge[1]]['cos_y']), 2))
+        """
+        print(graph[edge[0]][edge[1]]['lose_energy'])
+
+def func_calculated_reactive_compens(graph):
+    """
+    calculated compensation reactive power
+    :param graph:
+    :return:
+    """
+    pass
 
 def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potential, directed_adjacency_matrix):
     """
