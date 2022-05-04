@@ -13,6 +13,8 @@ k_z = 0.5                                                                       
 k_konf = 0.99                                                      # coefficient configuration active and reactive power
 delta_p_l_y_6 = 0.0000308                 # кВт*ч/(м*ч) удельные годовые потери ЭЭ от токов утечки по изоляторам ВЛ-6 кВ
 delta_p_l_y_10 = 0.0000502                # кВт*ч/(м*ч) удельные годовые потери ЭЭ от токов утечки по изоляторам ВЛ-6 кВ
+tg_y_k = 0.33           # необходимое значение коэффициента реактивной мощности после установки конденсаторной установки
+cos_y_k = 0.95                                                              # необходимое значение коэффициента мощности
 
 # start source data
 
@@ -55,6 +57,11 @@ directed_adjacency_list = np.array([(1, 3),
                                     (0),
                                     (1, 4),
                                     (5)])
+
+test_list = np.array([(1, 2),
+                      (0, 2, 3),
+                      (0, 1, 3),
+                      (1, 2)])
 
 def func_initialization_adjacency_list(edges):
     """
@@ -185,16 +192,17 @@ def func_initialization_undirected_graph(list, nodes, branches):
     :return: неориентированный граф
     FIX ME!!
     """
-    graph= nx.Graph()
+    graph = nx.Graph()
     for index in range(nodes):
         graph.add_node(index, potential=0, active=15)
-    for branch in range(branches):
-        graph.add_edge(int(list[branch][0]), int(list[branch][1]), resistance=float(list[branch][2]),
-                       voltage=float(list[branch][3]), type=list[branch][4], length=float(list[branch][5]),
-                       cross_section=float(list[branch][6]), I=float(list[branch][7]), material=list[branch][8],
-                       r_0=float(list[branch][9]), x_0=float(list[branch][10]), cos_y=float(list[branch][11]),
-                       sin_y=float(list[branch][12]), lose_volt=float(list[branch][13]),
-                       lose_energy=float(list[branch][14]))
+    for node in range(len(list)):
+        for point in range(len(list[node])):
+            graph.add_edge(int(node), int(list[node][point]), resistance=0,
+                           voltage=0, type=0, length=0,
+                           cross_section=0, I=0, material=0,
+                           r_0=0, x_0=0, cos_y=0,
+                           sin_y=0, lose_volt=0,
+                           lose_energy=0)
     return graph
 
 def func_initialization_directed_graph(list, nodes, branches):
@@ -218,7 +226,7 @@ def func_initialization_directed_graph(list, nodes, branches):
                        lose_energy=float(list[branch][14]))
     return graph
 
-def count_of_nodes(adjacency_matrix):
+def func_count_of_nodes(adjacency_matrix):
     """
     функция по матрице смежности считает сколько в графе узлов
     :param adjacency_matrix:
@@ -238,7 +246,7 @@ def count_of_nodes(adjacency_matrix):
             count_nodes += 1
     return count_nodes
 
-def count_of_branches(adjacency_list):
+def func_count_of_branches(adjacency_list):
     """
     функция по списку смежности считает количество ветвей (рёбер) в графе
     :param adjacency_list:
@@ -329,16 +337,60 @@ def func_Kirchhoff(adjacency_matrix):
     матричная теорема о деревьях Кирхгофа
     :param adjacency_matrix: матрица смежности
     :return:
+    FIX ME!!
     """
     matrix_Kirchoff = adjacency_matrix.copy()
     matrix_Kirchoff *= -1
     for diagonal in range(len(matrix_Kirchoff)):
         temp_sum = sum(matrix_Kirchoff)
         matrix_Kirchoff[diagonal][diagonal] = -1 * sum(matrix_Kirchoff[diagonal])
-    temp1 = np.delete(matrix_Kirchoff, 0, 0)
-    temp2 = np.delete(temp1, 0, 1)
-    print("Количество остовных деревьев = ", int(np.linalg.det(temp2)))
-    return int(np.linalg.det(temp2))
+    temp1 = np.delete(matrix_Kirchoff, len(matrix_Kirchoff) - 1, 0)
+    temp2 = np.delete(temp1, len(matrix_Kirchoff) - 1, 1)
+    print("Количество остовных деревьев = ", np.linalg.det(temp2))
+    return np.linalg.det(temp2)
+
+def func_DFS_for_spannin_trees(graph, node, visited, path, trees):
+    """
+    function for support "func_spanning_trees" function
+    :param graph:
+    :param node:
+    :param visited:
+    :return:
+    """
+    if node in visited:
+        return
+    visited.add(node)
+    path.append(node)
+    if len(path) == len(graph.nodes):
+        sort_path = sorted(path)
+        if sort_path == list(graph.nodes):
+            path_to_memory = path.copy()
+            trees.append(path_to_memory)
+    for neighbour in graph[node]:
+        if neighbour not in visited:
+            func_DFS_for_spannin_trees(graph, neighbour, visited, path, trees)
+            visited.remove(neighbour)
+            path.remove(neighbour)
+
+def func_spanning_trees(graph):
+    """
+    count and output spanning trees in graph
+    :param graph:
+    :return:
+    """
+    visited = set()
+    counter_edges = 1
+    trees = []
+    path = []
+    to_explore = []
+    for start_point in graph.nodes:
+        func_DFS_for_spannin_trees(graph, start_point, visited, path, trees)
+        visited.clear()
+        path.clear()
+    print("Количество остовных деревьев = ", len(trees))
+    for iter in range(len(trees)):
+        print("Остовное дерево ", iter + 1, ": ", trees[iter])
+
 
 def func_calculating_support_variables(graph):
     """
@@ -446,7 +498,13 @@ def func_calculated_reactive_compens(graph):
     :param graph:
     :return:
     """
-    pass
+    # линейное напряжение принимаем равным в 400 В, однако, я думаю, что лучше прописать соответствующее поле в графе
+    U_l = 400
+    for edge in graph.edges():
+        S = graph[edge[0]][edge[1]]['I']*U_l
+        tg_y = math.sqrt((1/pow(graph[edge[0]][edge[1]]['cos_y'], 2)) - 1)
+        Q_ku = math.sqrt(3)*graph[edge[0]][edge[1]]['I']*U_l*graph[edge[0]][edge[1]]['cos_y']*(tg_y - tg_y_k)
+
 
 def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potential, directed_adjacency_matrix):
     """
@@ -530,44 +588,6 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
     for branch in graph.edges():
         print(graph.edges[branch])
 
-def func_find(number, A):
-    """
-    ищет number в A и возвращает True - если есть такой
-    False - если такого нет
-    :param number:
-    :param A:
-    :return:
-    FIX ME!!!
-    """
-    flag = False
-    for x in A:
-        if number == x:
-            flag = True
-            break
-    return flag
-
-def func_permutations(N:int, M:int, prefix=None):
-    """
-    генерация всех перестановок N чисел в M позициях, с префиксом prefix
-    :param N:
-    :param M:
-    :param prefix:
-    :return:
-    FIX ME!!!
-    """
-    M = N if M == -1 else M  # по умолчанию N чисел в N позициях
-    prefix = prefix or []
-    if M == 0:
-        print(prefix)
-        return
-    for number in range(1, N + 1):
-        if func_find(number, prefix):
-            continue
-        prefix.append(number)
-        func_permutations(N, M - 1, prefix)
-        prefix.pop()
-
-
 # end functions and support elements
 
 # running algorithm
@@ -577,14 +597,7 @@ def func_permutations(N:int, M:int, prefix=None):
 # teseted
 # teseted
 
-adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
-nodes = count_of_nodes(adjacency_matrix)
-branches = count_of_branches(directed_adjacency_list)
-graph = func_initialization_directed_graph(edges, nodes, branches)
-func_calculating_support_variables(graph)
-func_calculated_current_node_potential_algo(graph, nodes, nodes-1, adjacency_matrix)
-func_loses_voltage(graph)
-func_loses_energy_400(graph)
+
 
 # teseted
 # teseted
