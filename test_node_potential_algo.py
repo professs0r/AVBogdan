@@ -349,18 +349,45 @@ def func_Kirchhoff(adjacency_matrix):
     print("Количество остовных деревьев = ", np.linalg.det(temp2))
     return np.linalg.det(temp2)
 
-def func_DFS_for_spannin_trees(graph, node, visited, path, trees):
+def func_BFS_for_spanninп_trees(graph, node, visited, path, trees):
+    """
+
+    :param graph:
+    :param node:
+    :param visited:
+    :param path:
+    :param trees:
+    :return:
+    """
+    visited = {node}
+    to_explore = [node]
+    lens = dict()
+    lens[node] = 0
+    prev = dict()
+    prev[node] = node
+    while to_explore:
+        next = to_explore.pop(0)
+        new_vertexes = [i for i in graph[next] if i not in visited]
+        for i in new_vertexes:
+            lens[i] = lens[next] + 1
+            prev[i] = next
+        to_explore.extend(new_vertexes)
+        visited.update(new_vertexes)
+    return lens, prev
+
+def func_DFS_for_spanning_trees(graph, node, visited, path, trees):
     """
     function for support "func_spanning_trees" function
     :param graph:
     :param node:
     :param visited:
     :return:
+    FIX ME!
     """
     if node in visited:
         return
     visited.add(node)
-    path.append(node)
+    path[node] = node
     if len(path) == len(graph.nodes):
         sort_path = sorted(path)
         if sort_path == list(graph.nodes):
@@ -368,7 +395,7 @@ def func_DFS_for_spannin_trees(graph, node, visited, path, trees):
             trees.append(path_to_memory)
     for neighbour in graph[node]:
         if neighbour not in visited:
-            func_DFS_for_spannin_trees(graph, neighbour, visited, path, trees)
+            func_DFS_for_spanning_trees(graph, neighbour, visited, path, trees)
             visited.remove(neighbour)
             path.remove(neighbour)
 
@@ -379,12 +406,10 @@ def func_spanning_trees(graph):
     :return:
     """
     visited = set()
-    counter_edges = 1
     trees = []
-    path = []
-    to_explore = []
+    path = dict()
     for start_point in graph.nodes:
-        func_DFS_for_spannin_trees(graph, start_point, visited, path, trees)
+        func_DFS_for_spanning_trees(graph, start_point, visited, path, trees)
         visited.clear()
         path.clear()
     print("Количество остовных деревьев = ", len(trees))
