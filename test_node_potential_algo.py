@@ -182,7 +182,7 @@ def func_initialization(list, nodes, branches):
     graph.add_edge(6, 5, resistance=0.84, voltage=0, type='СИП', length=8.4, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
     return graph
 
-def func_initialization_undirected_graph(list, nodes, branches):
+def func_initialization_undirected_graph(list, nodes):
     """
     функция, которая на основе списка смежности, а также сведений о количестве узлов и ветвей создаёт неориентированный
     граф
@@ -196,8 +196,8 @@ def func_initialization_undirected_graph(list, nodes, branches):
     for index in range(nodes):
         graph.add_node(index, potential=0, active=15)
     for node in range(len(list)):
-        for point in range(len(list[node])):
-            graph.add_edge(int(node), int(list[node][point]), resistance=0,
+        for point in list[node]:
+            graph.add_edge(int(node), int(point), resistance=0,
                            voltage=0, type=0, length=0,
                            cross_section=0, I=0, material=0,
                            r_0=0, x_0=0, cos_y=0,
@@ -205,7 +205,7 @@ def func_initialization_undirected_graph(list, nodes, branches):
                            lose_energy=0)
     return graph
 
-def func_initialization_directed_graph(list, nodes, branches):
+def func_initialization_directed_graph(list, nodes):
     """
     функция, которая на основе списка смежности, а также сведений о количестве узлов и ветвей создаёт ориентированный
     граф
@@ -217,13 +217,22 @@ def func_initialization_directed_graph(list, nodes, branches):
     graph= nx.DiGraph()
     for index in range(nodes):
         graph.add_node(index, potential=0, active=15)
-    for branch in range(branches):
-        graph.add_edge(int(list[branch][0]), int(list[branch][1]), resistance=float(list[branch][2]),
-                       voltage=float(list[branch][3]), type=list[branch][4], length=float(list[branch][5]),
-                       cross_section=float(list[branch][6]), I=float(list[branch][7]), material=list[branch][8],
-                       r_0=float(list[branch][9]), x_0=float(list[branch][10]), cos_y=float(list[branch][11]),
-                       sin_y=float(list[branch][12]), lose_volt=float(list[branch][13]),
-                       lose_energy=float(list[branch][14]))
+    for node in range(len(list)):
+        if (isinstance(list[node], int)):
+            graph.add_edge(int(node), int(list[node]), resistance=0,
+                           voltage=0, type=0, length=0,
+                           cross_section=0, I=0, material=0,
+                           r_0=0, x_0=0, cos_y=0,
+                           sin_y=0, lose_volt=0,
+                           lose_energy=0)
+        else:
+            for point in list[node]:
+                graph.add_edge(int(node), int(point), resistance=0,
+                               voltage=0, type=0, length=0,
+                               cross_section=0, I=0, material=0,
+                               r_0=0, x_0=0, cos_y=0,
+                               sin_y=0, lose_volt=0,
+                               lose_energy=0)
     return graph
 
 def func_count_of_nodes(adjacency_matrix):
@@ -349,7 +358,7 @@ def func_Kirchhoff(adjacency_matrix):
     print("Количество остовных деревьев = ", np.linalg.det(temp2))
     return np.linalg.det(temp2)
 
-def func_BFS_for_spanninп_trees(graph, node, visited, path, trees):
+def func_BFS_for_spanning_trees(graph, node, visited, path, count_path, trees):
     """
 
     :param graph:
@@ -359,23 +368,20 @@ def func_BFS_for_spanninп_trees(graph, node, visited, path, trees):
     :param trees:
     :return:
     """
-    visited = {node}
     to_explore = [node]
-    lens = dict()
-    lens[node] = 0
-    prev = dict()
-    prev[node] = node
+    visited.add(node)
+    path[node] = node
     while to_explore:
         next = to_explore.pop(0)
         new_vertexes = [i for i in graph[next] if i not in visited]
         for i in new_vertexes:
-            lens[i] = lens[next] + 1
-            prev[i] = next
+            path[i] = next
+            count_path += 1
+            func_DFS_for_spanning_trees(graph, i, visited, path, count_path, trees)
         to_explore.extend(new_vertexes)
         visited.update(new_vertexes)
-    return lens, prev
 
-def func_DFS_for_spanning_trees(graph, node, visited, path, trees):
+def func_DFS_for_spanning_trees(graph, node, visited, path, count_path, trees):
     """
     function for support "func_spanning_trees" function
     :param graph:
@@ -387,17 +393,20 @@ def func_DFS_for_spanning_trees(graph, node, visited, path, trees):
     if node in visited:
         return
     visited.add(node)
-    path[node] = node
-    if len(path) == len(graph.nodes):
+    #path[node] = node
+    if count_path == len(graph.nodes):
         sort_path = sorted(path)
-        if sort_path == list(graph.nodes):
+        if (np.array(sort_path) == np.array(graph.nodes)).all():
             path_to_memory = path.copy()
             trees.append(path_to_memory)
     for neighbour in graph[node]:
         if neighbour not in visited:
-            func_DFS_for_spanning_trees(graph, neighbour, visited, path, trees)
+            path[neighbour] = node
+            count_path += 1
+            func_DFS_for_spanning_trees(graph, neighbour, visited, path, count_path, trees)
             visited.remove(neighbour)
-            path.remove(neighbour)
+            path.pop(neighbour)
+            count_path -= 1
 
 def func_spanning_trees(graph):
     """
@@ -408,10 +417,12 @@ def func_spanning_trees(graph):
     visited = set()
     trees = []
     path = dict()
+    count_path = 1
     for start_point in graph.nodes:
-        func_DFS_for_spanning_trees(graph, start_point, visited, path, trees)
+        func_BFS_for_spanning_trees(graph, start_point, visited, path, count_path, trees)
         visited.clear()
         path.clear()
+        count_path = 1
     print("Количество остовных деревьев = ", len(trees))
     for iter in range(len(trees)):
         print("Остовное дерево ", iter + 1, ": ", trees[iter])
@@ -622,6 +633,28 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
 # teseted
 # teseted
 
+"""
+#directed graph
+
+matrix = func_list_to_matrix(directed_adjacency_list)
+nodes = func_count_of_nodes(matrix)
+branches = func_count_of_branches(directed_adjacency_list)
+#graph = func_initialization(directed_adjacency_list, nodes, branches)
+graph = func_initialization_directed_graph(directed_adjacency_list, nodes)
+func_spanning_trees(graph)
+"""
+
+"""
+#undirected graph
+
+list = func_directed_to_nondirected_adjacency_list(directed_adjacency_list)
+matrix = func_list_to_matrix(list)
+nodes = func_count_of_nodes(matrix)
+branches = func_count_of_branches(list)
+graph = func_initialization_undirected_graph(list, nodes)
+
+func_spanning_trees(graph)
+"""
 
 
 # teseted
