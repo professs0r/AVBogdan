@@ -50,6 +50,9 @@ edges = np.array([edge_0,
 
 # start functions and support elements
 
+
+#graph with 7 nodes and 11 (directed) edges / 22 (undirected) edges
+
 directed_adjacency_list = np.array([(1, 3),
                                     (2, 4),
                                     (3, 6),
@@ -58,10 +61,30 @@ directed_adjacency_list = np.array([(1, 3),
                                     (1, 4),
                                     (5)])
 
-test_list = np.array([(1, 2),
-                      (0, 2, 3),
-                      (0, 1, 3),
-                      (1, 2)])
+edge_0 = (0, 1, 70.1, 630, 0, 701, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_1 = (0, 3, 5.62, 220, 0, 56.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_2 = (1, 2, 2.55, 0, 0, 25.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_3 = (1, 4, 70, 0, 0, 700, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_4 = (2, 3, 85.89, 0, 0, 858.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_5 = (2, 6, 3.69, 0, 0, 36.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_6 = (3, 6, 2.33, 0, 0, 23.3, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_7 = (4, 0, 1.52, 0, 0, 15.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_8 = (5, 1, 1.35, 380, 0, 13.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_9 = (5, 4, 0.1, 0, 0, 1, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_10 = (6, 5, 0.84, 0, 0, 8.4, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+
+edges = np.array([edge_0,
+                  edge_1,
+                  edge_2,
+                  edge_3,
+                  edge_4,
+                  edge_5,
+                  edge_6,
+                  edge_7,
+                  edge_8,
+                  edge_9,
+                  edge_10])
+
 
 def func_initialization_adjacency_list(edges):
     """
@@ -156,6 +179,31 @@ def func_list_to_matrix(adjacency_list):
                 adjacency_matrix[row][adjacency_list[row][column]] = 1
 
     return adjacency_matrix
+
+def func_dict_to_dir_graph(dictionary_of_tree, edges):
+    """
+
+    :param dictionary: dict of spanning tree
+    :edges: edges of graph with supporting values
+    :return: graph
+    """
+    graph = nx.DiGraph()
+    for index in dictionary_of_tree.keys():
+        graph.add_node(index, potential=0, active=15)
+    dictionary_of_tree.pop(int(list(dictionary_of_tree.keys())[0]))
+    temp_edges = edges.copy()
+    for finish, start in dictionary_of_tree.items():
+        for iter in range(len(temp_edges)):
+            if int(temp_edges[iter][0]) == start and int(temp_edges[iter][1]) == finish:
+                graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
+                               voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
+                               cross_section=temp_edges[iter][6], I=temp_edges[iter][7], material=temp_edges[iter][8],
+                               r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
+                               sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
+                               lose_energy=temp_edges[iter][14])
+                temp_edges = np.delete(temp_edges, iter, axis=0)
+                break
+    return graph
 
 def func_initialization(list, nodes, branches):
     """
@@ -396,8 +444,8 @@ def func_DFS_for_spanning_trees(graph, node, visited, path, count_path, trees):
     #path[node] = node
     if count_path == len(graph.nodes):
         sort_path = sorted(path)
-        if (np.array(sort_path) == np.array(graph.nodes)).all():
-            path_to_memory = path.copy()
+        path_to_memory = path.copy()
+        if (np.array(sort_path) == np.array(graph.nodes)).all() and (path_to_memory not in trees):
             trees.append(path_to_memory)
     for neighbour in graph[node]:
         if neighbour not in visited:
@@ -426,6 +474,7 @@ def func_spanning_trees(graph):
     print("Количество остовных деревьев = ", len(trees))
     for iter in range(len(trees)):
         print("Остовное дерево ", iter + 1, ": ", trees[iter])
+    return trees
 
 
 def func_calculating_support_variables(graph):
@@ -633,7 +682,7 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
 # teseted
 # teseted
 
-"""
+
 #directed graph
 
 matrix = func_list_to_matrix(directed_adjacency_list)
@@ -641,8 +690,14 @@ nodes = func_count_of_nodes(matrix)
 branches = func_count_of_branches(directed_adjacency_list)
 #graph = func_initialization(directed_adjacency_list, nodes, branches)
 graph = func_initialization_directed_graph(directed_adjacency_list, nodes)
-func_spanning_trees(graph)
-"""
+dictionary_of_tree = func_spanning_trees(graph)
+func_Kirchhoff(matrix)
+for tree in dictionary_of_tree:
+    print("Строим дерево = ", tree)
+    new_graph = func_dict_to_dir_graph(tree, edges)
+    for branch in new_graph.edges():
+        print(new_graph.edges[branch])
+
 
 """
 #undirected graph
@@ -652,8 +707,8 @@ matrix = func_list_to_matrix(list)
 nodes = func_count_of_nodes(matrix)
 branches = func_count_of_branches(list)
 graph = func_initialization_undirected_graph(list, nodes)
-
 func_spanning_trees(graph)
+func_Kirchhoff(matrix)
 """
 
 
