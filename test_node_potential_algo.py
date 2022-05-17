@@ -180,29 +180,56 @@ def func_list_to_matrix(adjacency_list):
 
     return adjacency_matrix
 
-def func_dict_to_dir_graph(dictionary_of_tree, edges):
+def func_dict_to_dir_graph(dictionary_of_tree, edges, flag=1):
     """
 
     :param dictionary: dict of spanning tree
     :edges: edges of graph with supporting values
+    :flag: 1 - is directed graph, 0 - undirected graph (default vaule = 1, so directed graph)
     :return: graph
+    FIX ME!
     """
     graph = nx.DiGraph()
     for index in dictionary_of_tree.keys():
         graph.add_node(index, potential=0, active=15)
-    dictionary_of_tree.pop(int(list(dictionary_of_tree.keys())[0]))
-    temp_edges = edges.copy()
-    for finish, start in dictionary_of_tree.items():
-        for iter in range(len(temp_edges)):
-            if int(temp_edges[iter][0]) == start and int(temp_edges[iter][1]) == finish:
-                graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
-                               voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
-                               cross_section=temp_edges[iter][6], I=temp_edges[iter][7], material=temp_edges[iter][8],
-                               r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
-                               sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
-                               lose_energy=temp_edges[iter][14])
-                temp_edges = np.delete(temp_edges, iter, axis=0)
-                break
+    if flag == 1:
+        dictionary_of_tree.pop(int(list(dictionary_of_tree.keys())[0]))
+        temp_edges = edges.copy()
+        for finish, start in dictionary_of_tree.items():
+            for iter in range(len(temp_edges)):
+                if int(temp_edges[iter][0]) == start and int(temp_edges[iter][1]) == finish:
+                    graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
+                                   voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
+                                   cross_section=temp_edges[iter][6], I=temp_edges[iter][7], material=temp_edges[iter][8],
+                                   r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
+                                   sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
+                                   lose_energy=temp_edges[iter][14])
+                    temp_edges = np.delete(temp_edges, iter, axis=0)
+                    break
+    else:
+        dictionary_of_tree.pop(next(dictionary_of_tree.__iter__()))
+        temp_edges = edges.copy()
+        for finish, start in dictionary_of_tree.items():
+            for iter in range(len(temp_edges)):
+                if (int(temp_edges[iter][0]) == start or int(temp_edges[iter][0]) == finish)\
+                        and\
+                   (int(temp_edges[iter][1]) == finish or int(temp_edges[iter][1]) == start):
+                    graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
+                                   voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
+                                   cross_section=temp_edges[iter][6], I=temp_edges[iter][7],
+                                   material=temp_edges[iter][8],
+                                   r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
+                                   sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
+                                   lose_energy=temp_edges[iter][14])
+                    graph.add_edge(int(temp_edges[iter][1]), int(temp_edges[iter][0]), resistance=temp_edges[iter][2],
+                                   voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
+                                   cross_section=temp_edges[iter][6], I=temp_edges[iter][7],
+                                   material=temp_edges[iter][8],
+                                   r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
+                                   sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
+                                   lose_energy=temp_edges[iter][14])
+                    temp_edges = np.delete(temp_edges, iter, axis=0)
+                    break
     return graph
 
 def func_initialization(list, nodes, branches):
@@ -441,7 +468,6 @@ def func_DFS_for_spanning_trees(graph, node, visited, path, count_path, trees):
     if node in visited:
         return
     visited.add(node)
-    #path[node] = node
     if count_path == len(graph.nodes):
         sort_path = sorted(path)
         path_to_memory = path.copy()
@@ -682,7 +708,7 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
 # teseted
 # teseted
 
-
+"""
 #directed graph
 
 matrix = func_list_to_matrix(directed_adjacency_list)
@@ -694,12 +720,12 @@ dictionary_of_tree = func_spanning_trees(graph)
 func_Kirchhoff(matrix)
 for tree in dictionary_of_tree:
     print("Строим дерево = ", tree)
-    new_graph = func_dict_to_dir_graph(tree, edges)
+    new_graph = func_dict_to_dir_graph(tree, edges, 1)
     for branch in new_graph.edges():
         print(new_graph.edges[branch])
-
-
 """
+
+
 #undirected graph
 
 list = func_directed_to_nondirected_adjacency_list(directed_adjacency_list)
@@ -707,9 +733,13 @@ matrix = func_list_to_matrix(list)
 nodes = func_count_of_nodes(matrix)
 branches = func_count_of_branches(list)
 graph = func_initialization_undirected_graph(list, nodes)
-func_spanning_trees(graph)
+dictionary_of_tree = func_spanning_trees(graph)
 func_Kirchhoff(matrix)
-"""
+for tree in dictionary_of_tree:
+    print("Строим дерево = ", tree)
+    new_graph = func_dict_to_dir_graph(tree, edges, 0)
+    for branch in new_graph.edges():
+        print(new_graph.edges[branch])
 
 
 # teseted
