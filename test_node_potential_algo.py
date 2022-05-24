@@ -177,10 +177,32 @@ def func_list_to_matrix(adjacency_list):
         else:
             for column in range(len(adjacency_list[row])):
                 adjacency_matrix[row][adjacency_list[row][column]] = 1
-
     return adjacency_matrix
 
-def func_dict_to_dir_graph(dictionary_of_tree, edges, flag=1):
+def func_dict_to_directed_matrix(dictionary_of_tree):
+    """
+
+    :param dictionary_of_tree: dict of spanning tree
+    :return: adjacency matrix
+    """
+    adjacency_matrix = np.zeros((len(dictionary_of_tree)+1, len(dictionary_of_tree)+1))
+    for item in dictionary_of_tree.items():
+        adjacency_matrix[item[1]][item[0]] = 1
+    return adjacency_matrix
+
+def func_dict_to_undirected_matrix(dictionary_of_tree):
+    """
+
+    :param dictionary_of_tree: dict of spanning tree
+    :return: adjacency matrix
+    """
+    adjacency_matrix = np.zeros((len(dictionary_of_tree)+1, len(dictionary_of_tree)+1))
+    for item in dictionary_of_tree.items():
+        adjacency_matrix[item[1]][item[0]] = 1
+        adjacency_matrix[item[0]][item[1]] = 1
+    return adjacency_matrix
+
+def func_dict_to_graph(dictionary_of_tree, edges, flag=1):
     """
 
     :param dictionary: dict of spanning tree
@@ -198,12 +220,12 @@ def func_dict_to_dir_graph(dictionary_of_tree, edges, flag=1):
         for finish, start in dictionary_of_tree.items():
             for iter in range(len(temp_edges)):
                 if int(temp_edges[iter][0]) == start and int(temp_edges[iter][1]) == finish:
-                    graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
-                                   voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
-                                   cross_section=temp_edges[iter][6], I=temp_edges[iter][7], material=temp_edges[iter][8],
-                                   r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
-                                   sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
-                                   lose_energy=temp_edges[iter][14])
+                    graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                                   voltage=float(temp_edges[iter][3]), type=temp_edges[iter][4], length=float(temp_edges[iter][5]),
+                                   cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]), material=temp_edges[iter][8],
+                                   r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]), cos_y=float(temp_edges[iter][11]),
+                                   sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                                   lose_energy=float(temp_edges[iter][14]))
                     temp_edges = np.delete(temp_edges, iter, axis=0)
                     break
     else:
@@ -214,25 +236,25 @@ def func_dict_to_dir_graph(dictionary_of_tree, edges, flag=1):
                 if (int(temp_edges[iter][0]) == start or int(temp_edges[iter][0]) == finish)\
                         and\
                    (int(temp_edges[iter][1]) == finish or int(temp_edges[iter][1]) == start):
-                    graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
-                                   voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
-                                   cross_section=temp_edges[iter][6], I=temp_edges[iter][7],
+                    graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                                   voltage=float(temp_edges[iter][3]), type=temp_edges[iter][4], length=float(temp_edges[iter][5]),
+                                   cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
                                    material=temp_edges[iter][8],
-                                   r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
-                                   sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
-                                   lose_energy=temp_edges[iter][14])
-                    graph.add_edge(int(temp_edges[iter][1]), int(temp_edges[iter][0]), resistance=temp_edges[iter][2],
-                                   voltage=temp_edges[iter][3], type=temp_edges[iter][4], length=temp_edges[iter][5],
-                                   cross_section=temp_edges[iter][6], I=temp_edges[iter][7],
+                                   r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]), cos_y=float(temp_edges[iter][11]),
+                                   sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                                   lose_energy=float(temp_edges[iter][14]))
+                    graph.add_edge(int(temp_edges[iter][1]), int(temp_edges[iter][0]), resistance=float(temp_edges[iter][2]),
+                                   voltage=float(temp_edges[iter][3]), type=temp_edges[iter][4], length=float(temp_edges[iter][5]),
+                                   cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
                                    material=temp_edges[iter][8],
-                                   r_0=temp_edges[iter][9], x_0=temp_edges[iter][10], cos_y=temp_edges[iter][11],
-                                   sin_y=temp_edges[iter][12], lose_volt=temp_edges[iter][13],
-                                   lose_energy=temp_edges[iter][14])
+                                   r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]), cos_y=float(temp_edges[iter][11]),
+                                   sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                                   lose_energy=float(temp_edges[iter][14]))
                     temp_edges = np.delete(temp_edges, iter, axis=0)
                     break
     return graph
 
-def func_initialization(list, nodes, branches):
+def func_initialization(nodes):
     """
     функция инициализации ориентированного графа
     :param list: список смежности
@@ -502,7 +524,6 @@ def func_spanning_trees(graph):
         print("Остовное дерево ", iter + 1, ": ", trees[iter])
     return trees
 
-
 def func_calculating_support_variables(graph):
     """
     function for calculating support variables for forward work
@@ -514,6 +535,7 @@ def func_calculating_support_variables(graph):
         if graph[g[0]][g[1]]['material'] == 'Al':
             graph[g[0]][g[1]]['r_0'] = resistance_Al/graph[g[0]][g[1]]['cross_section']
         else:
+            print(graph[g[0]][g[1]]['cross_section'])
             graph[g[0]][g[1]]['r_0'] = resistance_Cu / graph[g[0]][g[1]]['cross_section']
         graph[g[0]][g[1]]['x_0'] = 0.000336
         graph[g[0]][g[1]]['sin_y'] = math.sqrt(pow(1, 2) - pow(graph[g[0]][g[1]]['cos_y'], 2))
@@ -622,7 +644,6 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
     method node potential
     :return:
     """
-    print("func_calculated_current_node_potential_algo")
     conductivity_matrix = np.zeros((count_nodes - 1, count_nodes - 1))
     current_matrix = np.zeros((count_nodes - 1, 1))
     export_array = []
@@ -647,8 +668,7 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
                     graph[potential][export_array[0]]['resistance'])
                 else:
                     for exp_arr in range(len(export_array)):
-                        conductivity_matrix[potential][index_matrix] += 1 / (
-                        graph[potential][export_array[exp_arr]]['resistance'])
+                        conductivity_matrix[potential][index_matrix] += 1 / (graph[potential][export_array[exp_arr]]['resistance'])
                 if (len(import_array) == 1):
                     conductivity_matrix[potential][index_matrix] += 1 / (
                     graph[import_array[0]][potential]['resistance'])
@@ -696,8 +716,8 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
                                             graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
                                                'resistance']
 
-    for branch in graph.edges():
-        print(graph.edges[branch])
+    #for branch in graph.edges():
+        #print(graph.edges[branch])
 
 # end functions and support elements
 
@@ -715,17 +735,28 @@ matrix = func_list_to_matrix(directed_adjacency_list)
 nodes = func_count_of_nodes(matrix)
 branches = func_count_of_branches(directed_adjacency_list)
 #graph = func_initialization(directed_adjacency_list, nodes, branches)
-graph = func_initialization_directed_graph(directed_adjacency_list, nodes)
+#graph = func_initialization_directed_graph(directed_adjacency_list, nodes)
+graph = func_initialization(nodes)
+func_calculating_support_variables(graph)
+func_calculated_current_node_potential_algo(graph, nodes, nodes-1, matrix)
+print("Величины токов в исходном графе: ")
+for branch in graph.edges():
+    print(graph.edges[branch]['I'])
 dictionary_of_tree = func_spanning_trees(graph)
 func_Kirchhoff(matrix)
+#graph1 = func_dict_to_graph(dictionary_of_tree[1], edges, 1)
+#func_calculating_support_variables(graph1)
+#func_calculated_current_node_potential_algo(graph1, nodes, 0, matrix)
 for tree in dictionary_of_tree:
     print("Строим дерево = ", tree)
-    new_graph = func_dict_to_dir_graph(tree, edges, 1)
+    new_graph = func_dict_to_graph(tree, edges, 1)
+    func_calculating_support_variables(new_graph)
+    matrix_of_spanning_tree = func_dict_to_directed_matrix(tree)
+    func_calculated_current_node_potential_algo(new_graph, nodes, nodes-1, matrix_of_spanning_tree)
     for branch in new_graph.edges():
-        print(new_graph.edges[branch])
+        print(new_graph.edges[branch]['I'])
 """
-
-
+"""
 #undirected graph
 
 list = func_directed_to_nondirected_adjacency_list(directed_adjacency_list)
@@ -737,9 +768,13 @@ dictionary_of_tree = func_spanning_trees(graph)
 func_Kirchhoff(matrix)
 for tree in dictionary_of_tree:
     print("Строим дерево = ", tree)
-    new_graph = func_dict_to_dir_graph(tree, edges, 0)
+    new_graph = func_dict_to_graph(tree, edges, 0)
+    func_calculating_support_variables(new_graph)
+    matrix_of_spanning_tree = func_dict_to_undirected_matrix(tree)
+    func_calculated_current_node_potential_algo(new_graph, nodes, nodes-1, matrix_of_spanning_tree)
     for branch in new_graph.edges():
-        print(new_graph.edges[branch])
+        print(new_graph.edges[branch]['I'])
+"""
 
 
 # teseted
