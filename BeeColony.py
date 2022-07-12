@@ -13,8 +13,10 @@ class Floatbee:
         # Положение пчелы (искомые величины)
         self.position = None
         # Интервалы изменения искомых величин (ограничения)
-        self.min_val = None
-        self.max_val = None
+        # self.min_val = None
+        self.min_val = [-150] * Spherebee.count
+        # self.max_val = None
+        self.max_val = [150] * Spherebee.count
         # Значение целевой функции
         self.fitness = 0.0
 
@@ -51,8 +53,14 @@ class Floatbee:
             return True
         for curr_bee in bee_list:
             position = curr_bee.get_position()
+            print("Внутри метода otherpatch len(self.position) = ", len(self.position))
+            print("Внутри метода otherpatch self.position = ", self.position)
             for n in range(len(self.position)):
-                if abs (self.position[n] - position[n]) > range_list[n]:
+                print("self.position[n] = ", self.position[n])
+                print("position[n] = ", position[n])
+                print("range_list[n] = ", range_list[n])
+                print("Результат для блока if = ", (abs(self.position[n] - position[n]) > range_list[n]))
+                if abs(self.position[n] - position[n]) > range_list[n]:
                     return True
         return False
 
@@ -72,6 +80,7 @@ class Floatbee:
         """
         # К качждой из координат добавляет случайное значение
         self.position = [other_pos[n] + random.uniform(-range_list[n], range_list[n]) for n in range(len(other_pos))]
+        print("self.position = ", self.position)
         # Проверим, чтобы не выйти за заданные пределы
         self.check_position()
         # Рассчитаем и сохраним целевую функцию.
@@ -139,10 +148,14 @@ class Hive:
 
         #self.__swarm.sort(self.__swarm.sort(self.__swarm), reverse=True)
         self.swarm = sorted(self.swarm, key=lambda func: func.fitness, reverse=True)
+        print("Отсортированный список self.swarm")
         for swarm in self.swarm:
-            print(swarm.fitness)
+            print("swarm.fitness = ", swarm.fitness)
+            print("swarm.position = ", swarm.position)
         self.best_position = self.swarm[0].get_position()
+        print("self.best_position = ", self.best_position)
         self.best_fitness = self.swarm[0].fitness
+        print("self.best_fitness = ", self.best_fitness)
 
     def send_bees(self, position, index, count):
         """
@@ -168,10 +181,13 @@ class Hive:
         # Выбираем самые лучшие места и сохраняем ссылки на тех, кто их нашёл
         self.best_sites = [self.swarm[0]]
         curr_index = 1
+        print("self.swarm = ", self.swarm)
+        print("self.swarm[curr_index:-1] = ", self.swarm[curr_index:-1])
         for curr_bee in self.swarm[curr_index:-1]:
             # Если пчела находится в пределах уже отмеченного лучшего участка, то её положение на считаем.
             if curr_bee.otherpatch(self.best_sites, self.range_list):
                 self.best_sites.append(curr_bee)
+                print("self.best_sites = ", self.best_sites)
                 if len(self.best_sites) == self.best_sites_count:
                     break
             curr_index += 1
@@ -192,7 +208,14 @@ class Hive:
         # Оставшихся пчёл отправим куда попало
         for curr_bee in self.swarm[bee_index:-1]:
             curr_bee.goto_random()
-        self.swarm.sort(Floatbee.sort, reverse=True)
+        # self.swarm.sort(Floatbee.sort, reverse=True)
+
+        self.swarm = sorted(self.swarm, key=lambda func: func.fitness, reverse=True)
+        print("Отсортированный список self.swarm")
+        for swarm in self.swarm:
+            print("swarm.fitness = ", swarm.fitness)
+            print("swarm.position = ", swarm.position)
+
         self.best_position = self.swarm[0].get_position()
         self.best_fitness = self.swarm[0].fitness
 
@@ -226,15 +249,25 @@ class Statistic:
         assert (len(self.positions) == len(self.fitness)), "Размерности значений координат и значений целевой функции должны быть одинаковыми!"
         assert (len(self.range) == len(self.fitness)), "Размерности области для поиска и значений целевой функции должны быть одинаковыми!"
 
+        print("run_number = ", run_number, "/", "len(self.fitness) = ", len(self.fitness))
+        print("self.positions = ", self.positions)
         if run_number == len(self.fitness):
+            print("Выполнение блока if метода add класса Statistic")
             self.fitness.append([fitness])
+            print("self.fitness = ", self.fitness)
             self.positions.append([positions])
+            print("self.positions = ", self.positions)
             self.range.append([range_values])
+            print("Завершение блока if метода add класса Statistic")
         else:
+            print("Выполнение блока else метода add класса Statistic")
             assert (run_number == len(self.fitness) - 1), "Пока не разобрался с этой строкой кода."
             self.fitness[run_number].append(fitness)
+            print("self.fitness = ", self.fitness)
             self.positions[run_number].append(positions)
+            print("self.positions = ", self.positions)
             self.range[run_number].append(range_values)
+            print("Завершение блока else метода add класса Statistic")
 
     def format_fitness(self, run_number):
         """
@@ -287,7 +320,9 @@ class Spherebee(Floatbee):
         self.max_val = [150.0] * Spherebee.count
         self.position = [random.uniform(self.mi_val[n], self.max_val[n]) for n in range(Spherebee.count)]
         print("self.__position = ", self.position)
-        self.calc_fitness()
+        self.fitness = self.calc_fitness()
+        print("self.fitness = ", self.fitness)
+        #self.calc_fitness()
 
     """
     Целевая функция - сумма квадратов по каждой координате.
@@ -322,6 +357,8 @@ class Spherebee(Floatbee):
         for val in self.position:
             self.fitness -= val * val
             print("self.__fitness = ", self.fitness)
+        # Строка кода ниже добавлена мною.
+        return self.fitness
 
 def plot_swarm(hive_inst, x_index, y_index):
     """
@@ -362,7 +399,7 @@ def plot_fitness(stat, run_number):
     :return:
     """
     x = range(len(stat.fitness[0]))
-    y = stat.__fitness[run_number]
+    y = stat.fitness[run_number]
     matplotlib.pyplot.plot(x, y)
     matplotlib.pyplot.xlabel("Iteration")
     matplotlib.pyplot.ylabel("Fitness")
@@ -428,27 +465,25 @@ def plot_stat(stat):
     matplotlib.pyplot.ioff()
     # Выводим изменение целевой функции в зависимости от номера итерации.
     #matplotlib.figure.Figure()
-    matplotlib.figure()
+    matplotlib.figure.Figure()
     plot_fitness(stat, 0)
     # Выводим усреднённое по всем запускаем изменение целевой функции в зависимости от номера итерации.
     # matplotlib.figure.Figure()
-    matplotlib.figure()
+    matplotlib.figure.Figure()
     plot_average_fitness(stat)
     # Выводим сходимость положений лучшей точки в зависимости от номера итерации.
     # matplotlib.figure.Figure()
-    matplotlib.figure()
-    pos_count = len(stat.__positions[0][0])
+    matplotlib.figure.Figure()
+    pos_count = len(stat.positions[0][0])
     for n in range(pos_count):
         matplotlib.pyplot.subplot(pos_count, 1, n+1)
-        #matplotlib.pyplot.subplots(pos_count, 1, n + 1)
         plot_positions(stat, 0, n)
     # Выводим изменение размеров областей в зависимости от номера итерации.
     #matplotlib.figure.Figure()
-    matplotlib.figure()
+    matplotlib.figure.Figure()
     range_count = len(stat.range[0][0])
     for n in range(range_count):
         matplotlib.pyplot.subplot(range_count, 1, n+1)
-        matplotlib.pyplot.subplots(range_count, 1, n+1)
         plot_range(stat, 0, n)
     matplotlib.pyplot.show()
 
@@ -482,27 +517,33 @@ def run_ABC():
     bee_type = Spherebee()
     # Количество пчёл-разведчиков
     #scout_bee_count = 300
-    scout_bee_count = 2
+    scout_bee_count = 100
+    #scout_bee_count = 2
     # Количество пчёл, отправляемых на выбранные, но не лучшие участки
     #selected_bee_count = 10
-    selected_bee_count = 2
+    selected_bee_count = 20
+    #selected_bee_count = 2
     # Количество пчёл, отправляемых на лучшие участки
     #best_bee_count = 30
-    best_bee_count = 2
+    best_bee_count = 20
+    #best_bee_count = 2
     # Количество выбранных, но не лучших участков
     #sel_sites_count = 15
-    sel_sites_count = 2
+    sel_sites_count = 10
+    #sel_sites_count = 2
     # Количество лучших участков
-    #best_sites_count = 5
-    best_sites_count = 2
+    best_sites_count = 5
+    #best_sites_count = 2
     # Количество запусков алгоритма
     run_count = 1
     # Максимальное количество итераций
     #max_iteration = 2000
-    max_iteration = 2
+    max_iteration = 100
+    #max_iteration = 2
     # Через такое количество итераций без нахождения лучшего решения уменьшим область поиска
     #max_func_counter = 10
-    max_func_counter = 1
+    max_func_counter = 3
+    #max_func_counter = 1
     # Во столько раз будет уменьшаться область поиска
     koeff = bee_type.get_range_koeff()
 
@@ -532,36 +573,50 @@ def run_ABC():
                 # Обновновляем рисунок роя пчёл
                 plot_swarm(curr_hive, 0, 1)
                 print("\n*** Iteration %d  / %d" % (run_number+1, n))
-                print("Best Position: %s" % (str(curr_hive.best_position)))
+                print("Best Position: %s" % curr_hive.best_position)
                 print("Best fitness: %f" % curr_hive.best_fitness)
             else:
                 func_counter += 1
                 if func_counter == max_func_counter:
                     # Уменьшаем размер участков
-                    curr_hive.__range = [curr_hive.range[m] * koeff[m] for m in range(len(curr_hive.range))]
+                    curr_hive.__range = [curr_hive.range_list[m] * koeff[m] for m in range(len(curr_hive.range_list))]
                     func_counter = 0
                     print("\n*** Iteration %d / %d (new range" % (run_number+1, n))
-                    print("New range: %s" % (str(curr_hive.range)))
-                    print("Best Position: %s" % (str(curr_hive.best_position)))
+                    print("New range: %s" % curr_hive.range_list)
+                    print("Best Position: %s" % curr_hive.best_position)
                     print("Best Fitness: %f" % curr_hive.best_fitness)
             #if n % 10 == 0:
                 #plot_swarm(curr_hive, 2, 3)
         # Сохраняем значения целевой функции
         fname = stat_fname % (("%4.4d" % run_number) + "_fitness")
+        print("stat_fname = ", stat_fname)
+        print("fname = ", fname)
+        """
         fp = file(fname, "w")
         fp.write(stat.format_fitness(run_number))
         fp.close()
+        """
+        with open(fname, "w") as fp:
+            fp.write(stat.format_fitness(run_number))
         # Сохраняем значения координат
-        fname = stat_fname % (("%4.4" % run_number) + "_pos")
+        fname = stat_fname % (("%4.4d" % run_number) + "_pos")
+        """
         fp = file(fname, "w")
         fp.write(stat.format_pos(run_number))
         fp.close()
+        """
+        with open(fname, "w") as fp:
+            fp.write(stat.format_pos(run_number))
         # Сохраняем значения интервалов
         fname = stat_fname % (("%4.4d" % run_number) + "_range")
+        """
         fp = file(fname, "w'")
         fp.write(stat.format_range(run_number))
         fp.close()
-    plot_stat(stat)
+        """
+        with open(fname, "w") as fp:
+            fp.write(stat.format_range(run_number))
+    #plot_stat(stat)
 
 """
 count_bee_scout = 10
