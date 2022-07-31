@@ -213,7 +213,7 @@ def func_dict_to_graph(dictionary_of_tree, edges, flag=1):
     """
     graph = nx.DiGraph()
     for index in dictionary_of_tree.keys():
-        graph.add_node(index, potential=0, active=15)
+        graph.add_node(index, potential=0, active=15, I=0)
     if flag == 1:
         dictionary_of_tree.pop(int(list(dictionary_of_tree.keys())[0]))
         temp_edges = edges.copy()
@@ -254,6 +254,25 @@ def func_dict_to_graph(dictionary_of_tree, edges, flag=1):
                     break
     return graph
 
+def func_edges_to_directed_graph(edges, count_nodes):
+    """
+    функция для инициализации ориентированного графа на основе списка рёбер
+    :param edges: список рёбер
+    :return: ориентированный граф
+    """
+    graph = nx.DiGraph()
+    for index in range(count_nodes):
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0)
+    temp_edges = edges.copy()
+    for iter in range(len(edges)):
+        graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                       voltage=float(temp_edges[iter][3]), type=int(temp_edges[iter][4]), length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]), material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]), cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                       lose_energy=float(temp_edges[iter][14]))
+    return graph
+
 def func_initialization(nodes):
     """
     функция инициализации ориентированного графа
@@ -265,7 +284,7 @@ def func_initialization(nodes):
     """
     graph = nx.DiGraph()
     for index in range(nodes):
-        graph.add_node(index, potential=0, active=15)
+        graph.add_node(index, potential=0, active=15, I=0)
     graph.add_edge(0, 1, resistance=70.1, voltage=630, type='СИП', length=701, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
     graph.add_edge(0, 3, resistance=5.62, voltage=220, type='СИП', length=56.2, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
     graph.add_edge(1, 2, resistance=2.55, voltage=0, type='СИП', length=25.5, cross_section=35, I=0, material='Al', r_0=0, x_0=0, cos_y=0.89, sin_y=0, lose_volt=0, lose_energy=0)
@@ -291,7 +310,7 @@ def func_initialization_undirected_graph(list, nodes):
     """
     graph = nx.Graph()
     for index in range(nodes):
-        graph.add_node(index, potential=0, active=15)
+        graph.add_node(index, potential=0, active=15, I=0)
     for node in range(len(list)):
         for point in list[node]:
             graph.add_edge(int(node), int(point), resistance=0,
@@ -313,7 +332,7 @@ def func_initialization_directed_graph(list, nodes):
     """
     graph= nx.DiGraph()
     for index in range(nodes):
-        graph.add_node(index, potential=0, active=15)
+        graph.add_node(index, potential=0, active=15, I=0)
     for node in range(len(list)):
         if (isinstance(list[node], int)):
             graph.add_edge(int(node), int(list[node]), resistance=0,
@@ -625,11 +644,30 @@ def func_loses_energy_220(graph):
         """
         print(graph[edge[0]][edge[1]]['lose_energy'])
 
+def func_algo_AVBogdan(graph):
+    """
+    function to count and find spanning trees in graph by A.V. Bogdan
+    :param graph:
+    :return:
+    """
+    matrix_AV = np.zeros((len(graph.nodes), len(graph.edges)))
+    iter = 0
+    for branch in graph.edges:
+        matrix_AV[branch[0]][iter] = 1
+        matrix_AV[branch[1]][iter] = -1
+        iter += 1
+    print("Матрица Александра Владимировича: ")
+    print(matrix_AV)
+    print("После удаления последней строки: ")
+    matrix_AV = np.delete(matrix_AV, len(matrix_AV) - 1, 0)
+    print(matrix_AV)
+
 def func_calculated_reactive_compens(graph):
     """
     calculated compensation reactive power
     :param graph:
     :return:
+    FIX ME!!!!
     """
     # линейное напряжение принимаем равным в 400 В, однако, я думаю, что лучше прописать соответствующее поле в графе
     U_l = 400
@@ -639,7 +677,7 @@ def func_calculated_reactive_compens(graph):
         Q_ku = math.sqrt(3)*graph[edge[0]][edge[1]]['I']*U_l*graph[edge[0]][edge[1]]['cos_y']*(tg_y - tg_y_k)
 
 
-def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potential, directed_adjacency_matrix):
+def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potential, directed_adjacency_matrix, directed_adjacency_list):
     """
     method node potential
     :return:
@@ -715,6 +753,12 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
         graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] +
                                             graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
                                                'resistance']
+    for node in graph.nodes:
+        if (isinstance(directed_adjacency_list[node], int)):
+            graph.nodes[node]['I'] = graph.edges[node, directed_adjacency_list[node]]['I']
+        else:
+            for index in range(len(directed_adjacency_list[node])):
+                graph.nodes[node]['I'] += graph.edges[node, directed_adjacency_list[node][index]]['I']
 
     #for branch in graph.edges():
         #print(graph.edges[branch])
@@ -728,7 +772,7 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
 # teseted
 # teseted
 
-"""
+
 #directed graph
 
 matrix = func_list_to_matrix(directed_adjacency_list)
@@ -736,14 +780,17 @@ nodes = func_count_of_nodes(matrix)
 branches = func_count_of_branches(directed_adjacency_list)
 #graph = func_initialization(directed_adjacency_list, nodes, branches)
 #graph = func_initialization_directed_graph(directed_adjacency_list, nodes)
-graph = func_initialization(nodes)
+#graph = func_initialization(nodes)
+graph = func_edges_to_directed_graph(edges, func_count_of_nodes(matrix))
 func_calculating_support_variables(graph)
-func_calculated_current_node_potential_algo(graph, nodes, nodes-1, matrix)
+func_calculated_current_node_potential_algo(graph, nodes, nodes-1, matrix, directed_adjacency_list)
 print("Величины токов в исходном графе: ")
 for branch in graph.edges():
     print(graph.edges[branch]['I'])
+"""
 dictionary_of_tree = func_spanning_trees(graph)
 func_Kirchhoff(matrix)
+func_algo_AVBogdan(graph)
 #graph1 = func_dict_to_graph(dictionary_of_tree[1], edges, 1)
 #func_calculating_support_variables(graph1)
 #func_calculated_current_node_potential_algo(graph1, nodes, 0, matrix)
