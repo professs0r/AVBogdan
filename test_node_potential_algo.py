@@ -2,6 +2,9 @@ import numpy as np
 import networkx as nx
 import operator
 import math
+import spannin_tree as st
+import copy
+import itertools
 import matplotlib.pyplot as plt
 
 #GLOBAL VARIABLES
@@ -262,7 +265,7 @@ def func_edges_to_directed_graph(edges, count_nodes):
     """
     graph = nx.DiGraph()
     for index in range(count_nodes):
-        graph.add_node(index, potential=0.0, active=15.0, I=0.0)
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False)
     temp_edges = edges.copy()
     for iter in range(len(edges)):
         graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
@@ -272,6 +275,45 @@ def func_edges_to_directed_graph(edges, count_nodes):
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
                        lose_energy=float(temp_edges[iter][14]))
     return graph
+
+def func_edges_to_undirected_graph(edges, count_nodes):
+    """
+    функция для инициализации неориентированного графа на основе списка рёбер
+    :param edges:
+    :param count_nodes:
+    :return:
+    """
+    graph = nx.Graph()
+    for index in range(count_nodes):
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
+    temp_edges = edges.copy()
+    for iter in range(len(edges)):
+        graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                       voltage=float(temp_edges[iter][3]), type=int(temp_edges[iter][4]),
+                       length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
+                       material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
+                       cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                       lose_energy=float(temp_edges[iter][14]))
+    return graph
+
+def func_edges_to_matrix_incidence(edges, count_nodes):
+    """
+    функция для составления матрицы инцидентности на основе списка рёбер
+    :param edges:
+    :param count_nodes:
+    :return:
+    """
+    matrix_incidence = np.zeros((count_nodes, len(edges)))
+    iter = 0
+    for branch in edges:
+        matrix_incidence[int(branch[0])][iter] = 1
+        matrix_incidence[int(branch[1])][iter] = 1
+        iter += 1
+    return matrix_incidence
+
 
 def func_initialization(nodes):
     """
@@ -651,16 +693,23 @@ def func_algo_AVBogdan(graph):
     :return:
     """
     matrix_AV = np.zeros((len(graph.nodes), len(graph.edges)))
+    matrix_incidence =np.zeros((len(graph.nodes), len(graph.edges)))
     iter = 0
     for branch in graph.edges:
         matrix_AV[branch[0]][iter] = 1
         matrix_AV[branch[1]][iter] = -1
+        matrix_incidence[branch[0]][iter] = 1
+        matrix_incidence[branch[1]][iter] = 1
         iter += 1
     print("Матрица Александра Владимировича: ")
     print(matrix_AV)
+    print("Матрица инцидентности исходной схемы: ")
+    print(matrix_incidence)
+    """
     print("После удаления последней строки: ")
     matrix_AV = np.delete(matrix_AV, len(matrix_AV) - 1, 0)
     print(matrix_AV)
+    """
 
 def func_calculated_reactive_compens(graph):
     """
@@ -772,7 +821,36 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
 # teseted
 # teseted
 
+exm_edge_0 = (0, 1, 70.1, 630, 0, 701, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edge_1 = (0, 2, 5.62, 220, 0, 56.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edge_2 = (1, 2, 2.55, 0, 0, 25.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edge_3 = (1, 3, 70, 0, 0, 700, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edge_4 = (1, 4, 85.89, 0, 0, 858.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edge_5 = (2, 3, 3.69, 0, 0, 36.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edge_6 = (3, 4, 2.33, 0, 0, 23.3, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+exm_edges = np.array([exm_edge_0,
+                      exm_edge_1,
+                      exm_edge_2,
+                      exm_edge_3,
+                      exm_edge_4,
+                      exm_edge_5,
+                      exm_edge_6])
+exm_directed_adjacency_list = np.array([(1, 2),
+                                        (2, 3, 4),
+                                        (3),
+                                        (4)])
 
+#building spanning trees
+list = func_initialization_adjacency_list(exm_edges)
+func_edges_to_matrix_incidence(exm_edges, 5)
+exm_graph = func_edges_to_undirected_graph(exm_edges, 5)
+trees = st.func_networkx_build_spanning_tree(exm_graph)
+for t in trees:
+    print(t.edges())
+
+#building spanning trees
+
+"""
 #directed graph
 
 matrix = func_list_to_matrix(directed_adjacency_list)
@@ -782,15 +860,19 @@ branches = func_count_of_branches(directed_adjacency_list)
 #graph = func_initialization_directed_graph(directed_adjacency_list, nodes)
 #graph = func_initialization(nodes)
 graph = func_edges_to_directed_graph(edges, func_count_of_nodes(matrix))
+#graph = func_edges_to_undirected_graph(edges, nodes)
+func_build_spanning_trees(graph)
 func_calculating_support_variables(graph)
 func_calculated_current_node_potential_algo(graph, nodes, nodes-1, matrix, directed_adjacency_list)
-print("Величины токов в исходном графе: ")
-for branch in graph.edges():
-    print(graph.edges[branch]['I'])
-"""
+#print("Величины токов в исходном графе: ")
+#for branc  h in graph.edges():
+    #print(graph.edges[branch]['I'])
 dictionary_of_tree = func_spanning_trees(graph)
 func_Kirchhoff(matrix)
-func_algo_AVBogdan(graph)
+"""
+
+#func_algo_AVBogdan(graph)
+"""
 #graph1 = func_dict_to_graph(dictionary_of_tree[1], edges, 1)
 #func_calculating_support_variables(graph1)
 #func_calculated_current_node_potential_algo(graph1, nodes, 0, matrix)
@@ -818,7 +900,7 @@ for tree in dictionary_of_tree:
     new_graph = func_dict_to_graph(tree, edges, 0)
     func_calculating_support_variables(new_graph)
     matrix_of_spanning_tree = func_dict_to_undirected_matrix(tree)
-    func_calculated_current_node_potential_algo(new_graph, nodes, nodes-1, matrix_of_spanning_tree)
+    func_calculated_current_node_potential_algo(new_graph, nodes, nodes-1, matrix_of_spanning_tree, directed_adjacency_list)
     for branch in new_graph.edges():
         print(new_graph.edges[branch]['I'])
 """
