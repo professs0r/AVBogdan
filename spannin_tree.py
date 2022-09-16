@@ -1362,6 +1362,18 @@ def func_build_spanning_trees(graph):
     k = 1
     step_2(k)
 
+def func_building_all_possible_spanning_tree_v2(graph):
+    """
+
+    :param graph:
+    :return:
+    """
+    list_spanning_trees = []
+    k = 0
+    nom = 0
+    x = 1
+    y = 2
+
 def func_networkx_build_spanning_tree(graph):
     """
 
