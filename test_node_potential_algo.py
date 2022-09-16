@@ -22,6 +22,7 @@ cos_y_k = 0.95                                                              # н
 # start source data
 
 # template of edge
+#graph with 7 nodes and 11 (directed) edges / 22 (undirected) edges
 #edge_0 = (source=0, finish=1, resistance=70.1, voltage=630, type='СИП', length=1000, cross_section=35, I=0,
 #          material=Al, r_0=0 (calculated), x_0=0 (calculated), cos_y=0.89, sin_y=0 (calculated),
 #          lose_volt=0 (calculated), lose_energy=0 (calculated))
@@ -36,6 +37,17 @@ edge_7 = (4, 0, 1.52, 0, 0, 15.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 edge_8 = (5, 1, 1.35, 380, 0, 13.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 edge_9 = (5, 4, 0.1, 0, 0, 1, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 edge_10 = (6, 5, 0.84, 0, 0, 8.4, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+
+#graph with 7 nodes and 11 (directed) edges / 22 (undirected) edges
+
+directed_adjacency_list = np.array([(1, 3),
+                                    (2, 4),
+                                    (3, 6),
+                                    (6),
+                                    (0),
+                                    (1, 4),
+                                    (5)])
+
 
 edges = np.array([edge_0,
                   edge_1,
@@ -52,42 +64,6 @@ edges = np.array([edge_0,
 # stop source data
 
 # start functions and support elements
-
-
-#graph with 7 nodes and 11 (directed) edges / 22 (undirected) edges
-
-directed_adjacency_list = np.array([(1, 3),
-                                    (2, 4),
-                                    (3, 6),
-                                    (6),
-                                    (0),
-                                    (1, 4),
-                                    (5)])
-
-edge_0 = (0, 1, 70.1, 630, 0, 701, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_1 = (0, 3, 5.62, 220, 0, 56.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_2 = (1, 2, 2.55, 0, 0, 25.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_3 = (1, 4, 70, 0, 0, 700, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_4 = (2, 3, 85.89, 0, 0, 858.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_5 = (2, 6, 3.69, 0, 0, 36.9, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_6 = (3, 6, 2.33, 0, 0, 23.3, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_7 = (4, 0, 1.52, 0, 0, 15.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_8 = (5, 1, 1.35, 380, 0, 13.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_9 = (5, 4, 0.1, 0, 0, 1, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_10 = (6, 5, 0.84, 0, 0, 8.4, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-
-edges = np.array([edge_0,
-                  edge_1,
-                  edge_2,
-                  edge_3,
-                  edge_4,
-                  edge_5,
-                  edge_6,
-                  edge_7,
-                  edge_8,
-                  edge_9,
-                  edge_10])
-
 
 def func_initialization_adjacency_list(edges):
     """
@@ -166,14 +142,14 @@ def func_initialization_undirected_adjacency_list(edges):                    # �
     undirected_adjacency_list = np.asarray(temp_array_undirected_adjacency)
     return undirected_adjacency_list
 
-def func_list_to_matrix(adjacency_list):
+def func_list_to_matrix(adjacency_list, nodes):
     """
     функция из списка смежности возвращает матрицу смежности
     :param adjacency_list: список смежности
     :return: матрица смежности
     WORKING CORRECT!
     """
-    adjacency_matrix = np.zeros((len(adjacency_list), len(adjacency_list)))
+    adjacency_matrix = np.zeros((nodes, nodes))
     for row in range(len(adjacency_list)):
         if(isinstance(adjacency_list[row], int)):
             adjacency_matrix[row][adjacency_list[row]] = 1
@@ -284,8 +260,22 @@ def func_edges_to_undirected_graph(edges, count_nodes):
     :return:
     """
     graph = nx.Graph()
+    """
+    # active load in each node 15 kW
     for index in range(count_nodes):
         graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
+    """
+    # power in kW
+    graph.add_node(0, potential=0.0, active=0, I=0.0, root=None, parent=None, visited=False, weight=1)
+    graph.add_node(1, potential=0.0, active=10, I=0.0, root=None, parent=None, visited=False, weight=2)
+    graph.add_node(2, potential=0.0, active=15, I=0.0, root=None, parent=None, visited=False, weight=3)
+    graph.add_node(3, potential=0.0, active=2.3, I=0.0, root=None, parent=None, visited=False, weight=4)
+    graph.add_node(4, potential=0.0, active=5, I=0.0, root=None, parent=None, visited=False, weight=5)
+    graph.add_node(5, potential=0.0, active=4, I=0.0, root=None, parent=None, visited=False, weight=6)
+    graph.add_node(6, potential=0.0, active=2.5, I=0.0, root=None, parent=None, visited=False, weight=7)
+    graph.add_node(7, potential=0.0, active=4, I=0.0, root=None, parent=None, visited=False, weight=8)
+    graph.add_node(8, potential=0.0, active=1, I=0.0, root=None, parent=None, visited=False, weight=9)
+    graph.add_node(9, potential=0.0, active=3.6, I=0.0, root=None, parent=None, visited=False, weight=10)
     temp_edges = edges.copy()
     for iter in range(len(edges)):
         graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
@@ -726,15 +716,18 @@ def func_calculated_reactive_compens(graph):
         Q_ku = math.sqrt(3)*graph[edge[0]][edge[1]]['I']*U_l*graph[edge[0]][edge[1]]['cos_y']*(tg_y - tg_y_k)
 
 
-def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potential, directed_adjacency_matrix, directed_adjacency_list):
+def func_calculated_current_node_potential_algo(graph, directed_adjacency_list):
     """
     method node potential
     :return:
     """
+    count_nodes = int(graph.number_of_nodes())
+    zero_potential = int(count_nodes - 1)
     conductivity_matrix = np.zeros((count_nodes - 1, count_nodes - 1))
     current_matrix = np.zeros((count_nodes - 1, 1))
     export_array = []
     import_array = []
+    directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list, count_nodes)
     for potential in range(count_nodes):  # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
         if (potential == zero_potential):
             continue
@@ -820,7 +813,7 @@ def func_calculated_current_node_potential_algo(graph, count_nodes, zero_potenti
 # teseted
 # teseted
 # teseted
-
+"""
 exm_edge_0 = (0, 1, 70.1, 630, 0, 701, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 exm_edge_1 = (0, 2, 5.62, 220, 0, 56.2, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 exm_edge_2 = (1, 2, 2.55, 0, 0, 25.5, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
@@ -849,7 +842,14 @@ for t in trees:
     print(t.edges())
 
 #building spanning trees
-
+"""
+"""
+graph = func_edges_to_undirected_graph(edges, 7)
+trees = st.func_networkx_build_spanning_tree(graph)
+for t in trees:
+    print(t.edges())
+print(len(trees))
+"""
 """
 #directed graph
 
@@ -910,4 +910,3 @@ for tree in dictionary_of_tree:
 # teseted
 # teseted
 # teseted
-
