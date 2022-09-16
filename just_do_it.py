@@ -11,17 +11,6 @@ import spannin_tree as st
 COUNT_NODES = 10
 COUNT_BRANCHES = 17
 
-directed_adjacency_list = np.array([1,
-                                    (2, 4),
-                                    (3, 5),
-                                    (0, 6),
-                                    (5, 7),
-                                    (0, 6, 8),
-                                    9,
-                                    (0, 8),
-                                    9,
-                                    0])
-
 #edge_0 = (source=0, finish=1, resistance=70.1,
 # voltage=630, type='СИП', length=1000, cross_section=35, I=0,
 #          material=Al, r_0=0 (calculated), x_0=0 (calculated), cos_y=0.89, sin_y=0 (calculated),
@@ -29,21 +18,35 @@ directed_adjacency_list = np.array([1,
 
 edge_0 = (0, 1, 0.1, 630, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 edge_1 = (1, 2, 1.17, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_2 = (1, 4, 1.35, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_3 = (2, 3, 2.55, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_2 = (2, 3, 2.55, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_3 = (1, 4, 1.35, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 edge_4 = (2, 5, 2.01, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_5 = (3, 0, 70.1, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_6 = (3, 6, 1.68, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_7 = (4, 5, 1.25, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_5 = (3, 6, 1.68, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_6 = (4, 5, 1.25, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_7 = (5, 6, 2.01, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
 edge_8 = (4, 7, 1.08, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_9 = (5, 0, 40, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_10 = (5, 6, 2.01, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_11 = (5, 8, 1.25, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_12 = (6, 9, 2.44, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_13 = (7, 0, 40, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_14 = (7, 8, 1.79, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_15 = (8, 9, 2.01, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
-edge_16 = (9, 0, 44.1, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_9 = (5, 8, 1.25, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_10 = (6, 9, 2.44, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_11 = (7, 8, 1.79, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_12 = (8, 9, 2.01, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+
+edge_nagr_0 = (1, 0, 39.69, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_1 = (2, 0, 26.46, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_2 = (3, 0, 172.56, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_3 = (4, 0, 79.38, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_4 = (5, 0, 99.22, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_5 = (6, 0, 158.76, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_6 = (7, 0, 99.22, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_7 = (8, 0, 396.9, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+edge_nagr_8 = (9, 0, 110.25, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0)
+                  
+#                                        START SOURCE DATA
+#                                        START SOURCE DATA
+#                                        START SOURCE DATA
+
+#                                        START WORKING ALGO
+#                                        START WORKING ALGO
+#                                        START WORKING ALGO
 
 edges = np.array([edge_0,
                   edge_1,
@@ -57,36 +60,39 @@ edges = np.array([edge_0,
                   edge_9,
                   edge_10,
                   edge_11,
-                  edge_12,
-                  edge_13,
-                  edge_14,
-                  edge_15,
-                  edge_16])
-                  
-#                                        START SOURCE DATA
-#                                        START SOURCE DATA
-#                                        START SOURCE DATA
-
-#                                        START WORKING ALGO
-#                                        START WORKING ALGO
-#                                        START WORKING ALGO
-
-
-matrix = algo.func_list_to_matrix(directed_adjacency_list)
+                  edge_12])
+graph = algo.func_edges_to_undirected_graph(edges, COUNT_NODES)
+print(graph)
+"""
+matrix = algo.func_list_to_matrix(directed_adjacency_list, COUNT_NODES)
 nodes = algo.func_count_of_nodes(matrix)
 branches = algo.func_count_of_branches(directed_adjacency_list)
 graph = algo.func_edges_to_undirected_graph(edges, nodes)
+"""
+
+# подсчёт и перечисление всех остовных деревьев
 trees = st.func_networkx_build_spanning_tree(graph)
 print(len(trees))
-for t in trees:
-    print(t.edges())
+list_edges_in_spanning_tree = []
+for tree in trees:
+    for edge in tree.edges.items():
+        # добавление ребра в список
+        list_edges_in_spanning_tree.append(edge[0])
+    # готовый список рёбер остовного дерева
+    print(list_edges_in_spanning_tree)
+    print(type(list_edges_in_spanning_tree))
+    list_edges_in_spanning_tree.clear()
+
 """
-graph = algo.func_edges_to_directed_graph(edges, COUNT_NODES)
+# расчёт вспомогательных величин и значений токов в ветвях
 algo.func_calculating_support_variables(graph)
 algo.func_calculated_current_node_potential_algo(graph, nodes, nodes-1, matrix, directed_adjacency_list)
 print("Величины токов в исходном графе: ")
 for branch in graph.edges():
+    print(branch)
     print(graph.edges[branch]['I'])
+"""
+"""
 count_iter = 1
 size = 3
 k = 0.1
