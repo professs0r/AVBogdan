@@ -92,6 +92,7 @@ edges = np.array([edge_0,
                   edge_nagr_7,
                   edge_nagr_8])
 """
+
 # для построения всех остовных деревьев
 edges = np.array([edge_0,
                   edge_1,
@@ -114,23 +115,21 @@ graph = algo.func_edges_to_undirected_graph(edges, COUNT_NODES)
 trees = st.func_networkx_build_spanning_tree(graph)
 print(len(trees))
 list_edges_in_spanning_tree = []
+lowest_loses = 10000000000000000000000000000000000000000000000000000
 for tree in trees:
     for edge in tree.edges.items():
         # добавление ребра в список
         list_edges_in_spanning_tree.append(edge[0])
     # готовый список рёбер остовного дерева
-    print(list_edges_in_spanning_tree)
+    #print(list_edges_in_spanning_tree)
     new_graph = algo.func_list_of_edges_to_graph(list_edges_in_spanning_tree, COUNT_NODES, edges_lines, edges_nagr)
-    for branch in new_graph.edges():
-        print(branch)
     algo.func_calculated_current_node_potential_algo(new_graph)
-    iter = 0
-    iter += 1
-    if iter == 190:
-        print("Проверка!")
-    for branch in new_graph.edges():
-        print(branch)
-        print(new_graph.edges[branch]['I'])
+    #for branch in new_graph.edges():
+        #print(branch, new_graph.edges[branch]['I'])
+    loses = algo.func_loses_energy_400(new_graph)
+    if loses < lowest_loses:
+        lowest_loses = loses
+        print("for tree:", list_edges_in_spanning_tree, "loses = ", lowest_loses)
     new_graph.clear()
     list_edges_in_spanning_tree.clear()
 
@@ -143,6 +142,8 @@ print("Величины токов в исходном графе: ")
 for branch in graph.edges():
     print(branch)
     print(graph.edges[branch]['I'])
+loses = algo.func_loses_energy_400(graph)
+print("Потери в ветвях для исходной схемы = ", loses)
 """
 """
 count_iter = 1
