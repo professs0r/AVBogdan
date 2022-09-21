@@ -321,11 +321,8 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
                        lose_energy=float(temp_edges[iter][14]))
                 break
-    if (graph.number_of_edges() == (count_nodes - 1)):
-        print("Всё правильно!")
-    else:
+    if (graph.number_of_edges() != (count_nodes - 1)):
         print("Ошибка! Недобрал или перебрал рёбер!")
-        input()
     temp_edges_nagr = edges_nagr.copy()
     for branch in range(len(temp_edges_nagr)):
         graph.add_edge(int(temp_edges_nagr[branch][0]), int(temp_edges_nagr[branch][1]),
@@ -690,13 +687,25 @@ def func_loses_energy_400(graph):
     :param graph:
     :return:
     """
-    print("func_loses_energy_400")
     # примем расчётное время за величину в 1 час
     T_p = 1
+    total_loses = 0
+    """
+    # вариант с произведением удельного сопротивления на протяжённость линии
     for edge in graph.edges():
         graph[edge[0]][edge[1]]['lose_energy'] = (3*k_konf*k_form*T_p*graph[edge[0]][edge[1]]['r_0']*
                                                   graph[edge[0]][edge[1]]['length']*
                                                   pow(graph[edge[0]][edge[1]]['I'], 2))/(1000)
+    """
+
+    # вариант с заранее известным сопротивлением в ветви
+    for edge in graph.edges():
+        # блок if необходим для того чтобы считались и в дальнейшем учитывались только потери в ветвях,
+        # а не в нагрузках
+        if graph[edge[0]][edge[1]]['length'] > 0:
+            graph[edge[0]][edge[1]]['lose_energy'] = (3 * k_konf * k_form * T_p * graph[edge[0]][edge[1]]['resistance'] *
+                                                      pow(graph[edge[0]][edge[1]]['I'], 2)) / (1000)
+            total_loses += graph[edge[0]][edge[1]]['lose_energy']
         """
         вариант с величиной потребляемой энергии по приборам учёта (вместо тока)
         graph[edge[0]][edge[1]]['lose_energy'] = (k_konf*k_form*pow(graph[edge[0]][edge[1]]['energy'], 2)*
@@ -704,7 +713,8 @@ def func_loses_energy_400(graph):
                                                   graph[edge[0]][edge[1]]['length'])/(1000*T_p*
                                                   pow((0.4*graph[edge[0]][edge[1]]['cos_y']), 2))
         """
-        print(graph[edge[0]][edge[1]]['lose_energy'])
+        #print(graph[edge[0]][edge[1]]['lose_energy'])
+    return total_loses
 
 def func_loses_energy_220(graph):
     """
