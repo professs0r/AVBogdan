@@ -297,6 +297,49 @@ def func_edges_to_undirected_graph(edges, count_nodes):
                        lose_energy=float(temp_edges[iter][14]))
     return graph
 
+def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_nagr):
+    """
+    функция для создания неориентированного графа из списка рёбер
+    :param list_of_edges:
+    :return:
+    """
+    graph = nx.Graph()
+    for index in range(count_nodes):
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False)
+    temp_edges = edges_lines.copy()
+    for edge in list_of_edges:
+        for iter in range(len(temp_edges)):
+            if (int(edge[0]) == int(temp_edges[iter][0]) and int(edge[1]) == int(temp_edges[iter][1])) or \
+                    (int(edge[1]) == int(temp_edges[iter][0]) and int(edge[0]) == int(temp_edges[iter][1])):
+                graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                       voltage=float(temp_edges[iter][3]), type=int(temp_edges[iter][4]),
+                       length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
+                       material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
+                       cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                       lose_energy=float(temp_edges[iter][14]))
+                break
+    if (graph.number_of_edges() == (count_nodes - 1)):
+        print("Всё правильно!")
+    else:
+        print("Ошибка! Недобрал или перебрал рёбер!")
+        input()
+    temp_edges_nagr = edges_nagr.copy()
+    for branch in range(len(temp_edges_nagr)):
+        graph.add_edge(int(temp_edges_nagr[branch][0]), int(temp_edges_nagr[branch][1]),
+                       resistance=float(temp_edges_nagr[branch][2]),
+                       voltage=float(temp_edges_nagr[branch][3]), type=int(temp_edges_nagr[branch][4]),
+                       length=float(temp_edges_nagr[branch][5]),
+                       cross_section=float(temp_edges_nagr[branch][6]), I=float(temp_edges_nagr[branch][7]),
+                       material=temp_edges_nagr[branch][8],
+                       r_0=float(temp_edges_nagr[branch][9]), x_0=float(temp_edges_nagr[branch][10]),
+                       cos_y=float(temp_edges_nagr[branch][11]),
+                       sin_y=float(temp_edges_nagr[branch][12]), lose_volt=float(temp_edges_nagr[branch][13]),
+                       lose_energy=float(temp_edges_nagr[branch][14]))
+    return graph
+
 def func_make_matrix_incidence(graph):
     """
     функция для составления матрицы инцидентности графа
