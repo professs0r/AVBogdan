@@ -15,19 +15,6 @@ delta_p_l_y_10 = 0.0000502                # кВт*ч/(м*ч) удельные �
 tg_y_k = 0.33           # необходимое значение коэффициента реактивной мощности после установки конденсаторной установки
 cos_y_k = 0.95                                                              # необходимое значение коэффициента мощности
 
-# потом удалить
-directed_adjacency_list = np.array([1,
-                                    (2, 4),
-                                    (3, 5),
-                                    (0, 6),
-                                    (5, 7),
-                                    (0, 6, 8),
-                                    9,
-                                    (0, 8),
-                                    9,
-                                    0])
-
-
 def func_list_to_matrix(adjacency_list):
     adjacency_matrix = np.zeros((len(adjacency_list), len(adjacency_list)))
     for row in range(len(adjacency_list)):
@@ -37,8 +24,6 @@ def func_list_to_matrix(adjacency_list):
             for column in range(len(adjacency_list[row])):
                 adjacency_matrix[row][adjacency_list[row][column]] = 1
     return adjacency_matrix
-
-directed_adjacency_matrix = func_list_to_matrix(directed_adjacency_list)
 
 def func_initialization(list, nodes, branches):
     graph = nx.DiGraph()
@@ -62,9 +47,6 @@ def func_initialization(list, nodes, branches):
     graph.add_edge(8, 9, resistance=2.01, voltage=0, type='СИП', length=1000, I=0)
     graph.add_edge(9, 0, resistance=44.1, voltage=0, type='СИП', length=1000, I=0)
     return graph
-
-graph = func_initialization(directed_adjacency_list, 10, 17)
-# потом удалить
 
 
 # start functions and support elements
@@ -245,7 +227,7 @@ def func_edges_to_directed_graph(edges, count_nodes):
     """
     graph = nx.DiGraph()
     for index in range(count_nodes):
-        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False)
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
     temp_edges = edges.copy()
     for iter in range(len(edges)):
         graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
@@ -253,7 +235,7 @@ def func_edges_to_directed_graph(edges, count_nodes):
                        cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]), material=temp_edges[iter][8],
                        r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]), cos_y=float(temp_edges[iter][11]),
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
-                       lose_energy=float(temp_edges[iter][14]))
+                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]))
     return graph
 
 def func_edges_to_undirected_graph(edges, count_nodes):
@@ -283,7 +265,7 @@ def func_edges_to_undirected_graph(edges, count_nodes):
     graph.add_node(9, potential=0.0, active=3.6, I=0.0, root=None, parent=None, visited=False, weight=10)
     """
     for index in range(count_nodes):
-        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False)
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
     temp_edges = edges.copy()
     for iter in range(len(edges)):
         graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
@@ -294,7 +276,7 @@ def func_edges_to_undirected_graph(edges, count_nodes):
                        r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
                        cos_y=float(temp_edges[iter][11]),
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
-                       lose_energy=float(temp_edges[iter][14]))
+                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]))
     return graph
 
 def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_nagr):
@@ -305,7 +287,7 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
     """
     graph = nx.Graph()
     for index in range(count_nodes):
-        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False)
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
     temp_edges = edges_lines.copy()
     for edge in list_of_edges:
         for iter in range(len(temp_edges)):
@@ -319,7 +301,8 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
                        r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
                        cos_y=float(temp_edges[iter][11]),
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
-                       lose_energy=float(temp_edges[iter][14]))
+                       lose_energy=float(temp_edges[iter][14]),
+                       PS=str(temp_edges[iter][15]))
                 break
     if (graph.number_of_edges() != (count_nodes - 1)):
         print("Ошибка! Недобрал или перебрал рёбер!")
@@ -334,7 +317,7 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
                        r_0=float(temp_edges_nagr[branch][9]), x_0=float(temp_edges_nagr[branch][10]),
                        cos_y=float(temp_edges_nagr[branch][11]),
                        sin_y=float(temp_edges_nagr[branch][12]), lose_volt=float(temp_edges_nagr[branch][13]),
-                       lose_energy=float(temp_edges_nagr[branch][14]))
+                       lose_energy=float(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]))
     return graph
 
 def func_make_matrix_incidence(graph):
@@ -853,6 +836,7 @@ def func_calculated_current_node_potential_algo(graph):
 
     for nodes in range(len(potential_matrix)):
         graph.nodes[nodes]['potential'] = float(potential_matrix[nodes])
+        #print("graph.nodes[nodes]['potential'] ", graph.nodes[nodes]['potential'])
 
     for branch in graph.edges():
         graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] +
@@ -860,7 +844,3 @@ def func_calculated_current_node_potential_algo(graph):
                                                'resistance']
 
 # end functions and support elements
-
-# потом удалить
-#func_calculated_current_node_potential_algo(graph)
-# потом удалить
