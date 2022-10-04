@@ -836,7 +836,7 @@ def func_calculated_current_node_potential_algo(graph):
 
     for nodes in range(len(potential_matrix)):
         graph.nodes[nodes]['potential'] = float(potential_matrix[nodes])
-        #print("graph.nodes[nodes]['potential'] ", graph.nodes[nodes]['potential'])
+        #print("Узел - ", nodes, ", потенциал ", graph.nodes[nodes]['potential'])
 
     for branch in graph.edges():
         graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] +
