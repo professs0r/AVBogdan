@@ -68,7 +68,7 @@ edges_nagr = np.array([edge_nagr_1,
                        edge_nagr_6,
                        edge_nagr_7,
                        edge_nagr_8])
-"""
+
 # для расчёта токов
 edges = np.array([edge_0,
                   edge_1,
@@ -91,8 +91,8 @@ edges = np.array([edge_0,
                   edge_nagr_6,
                   edge_nagr_7,
                   edge_nagr_8])
-"""
 
+"""
 # для построения всех остовных деревьев
 edges = np.array([edge_0,
                   edge_1,
@@ -108,9 +108,9 @@ edges = np.array([edge_0,
                   edge_11,
                   edge_12])
 
-
+"""
 graph = algo.func_edges_to_undirected_graph(edges, COUNT_NODES)
-
+"""
 # подсчёт и перечисление всех остовных деревьев
 trees = st.func_networkx_build_spanning_tree(graph)
 print(len(trees))
@@ -133,11 +133,10 @@ for tree in trees:
         print("Максимальное значение потерь напряжения в процентах = ", abs(abs((new_graph.nodes[0]['potential']/630)*100)-100))
     new_graph.clear()
     list_edges_in_spanning_tree.clear()
-
 """
+
 # расчёт вспомогательных величин и значений токов в ветвях
 #algo.func_calculating_support_variables(graph)
-#algo.func_calculated_current_node_potential_algo(graph)
 algo.func_calculated_current_node_potential_algo(graph)
 print("Величины токов в исходном графе: ")
 for branch in graph.edges():
@@ -145,7 +144,9 @@ for branch in graph.edges():
     print(graph.edges[branch]['I'])
 loses = algo.func_loses_energy_400(graph)
 print("Потери в ветвях для исходной схемы = ", loses)
-"""
+print("Максимальное значение потерь напряжения (абсолютная величина) = ", abs(graph.nodes[0]['potential']))
+print("Максимальное значение потерь напряжения в процентах = ", abs(abs((graph.nodes[0]['potential']/630)*100)-100))
+
 """
 count_iter = 1
 size = 3

@@ -281,6 +281,51 @@ def func_edges_to_undirected_graph(edges, count_nodes):
 
 def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_nagr):
     """
+    10.10.22 в данной функции исправляю аргументы функции и сам код функции для работоспособности функции по поиску
+    места установки реклоузера
+    функция для создания неориентированного графа из списка рёбер
+    :param list_of_edges:
+    :return:
+    """
+    graph = nx.Graph()
+    for index in range(count_nodes):
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
+    temp_edges = edges_lines.copy()
+    for edge in list_of_edges:
+        for iter in range(len(temp_edges)):
+            if (int(edge[0]) == int(temp_edges[iter][0]) and int(edge[1]) == int(temp_edges[iter][1])) or \
+                    (int(edge[1]) == int(temp_edges[iter][0]) and int(edge[0]) == int(temp_edges[iter][1])):
+                graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                       voltage=float(temp_edges[iter][3]), type=int(temp_edges[iter][4]),
+                       length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
+                       material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
+                       cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                       lose_energy=float(temp_edges[iter][14]),
+                       PS=str(temp_edges[iter][15]))
+                break
+    if (graph.number_of_edges() != (count_nodes - 1)):
+        print("Ошибка! Недобрал или перебрал рёбер!")
+    temp_edges_nagr = edges_nagr.copy()
+    for branch in range(len(temp_edges_nagr)):
+        graph.add_edge(int(temp_edges_nagr[branch][0]), int(temp_edges_nagr[branch][1]),
+                       resistance=float(temp_edges_nagr[branch][2]),
+                       voltage=float(temp_edges_nagr[branch][3]), type=int(temp_edges_nagr[branch][4]),
+                       length=float(temp_edges_nagr[branch][5]),
+                       cross_section=float(temp_edges_nagr[branch][6]), I=float(temp_edges_nagr[branch][7]),
+                       material=temp_edges_nagr[branch][8],
+                       r_0=float(temp_edges_nagr[branch][9]), x_0=float(temp_edges_nagr[branch][10]),
+                       cos_y=float(temp_edges_nagr[branch][11]),
+                       sin_y=float(temp_edges_nagr[branch][12]), lose_volt=float(temp_edges_nagr[branch][13]),
+                       lose_energy=float(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]))
+    return graph
+
+def func_list_of_edges_to_graph_recloser(list_of_edges, count_nodes, edges_lines, edges_nagr):
+    """
+    10.10.22 в данной функции исправляю аргументы функции и сам код функции для работоспособности функции по поиску
+    места установки реклоузера
     функция для создания неориентированного графа из списка рёбер
     :param list_of_edges:
     :return:
@@ -521,22 +566,26 @@ def func_BFS(graph, start):
         visited.update(new_vertexes)
     return lens, prev
 
-def func_Kirchhoff(adjacency_matrix):
+def func_Kirchhoff(graph):
     """
     матричная теорема о деревьях Кирхгофа
     :param adjacency_matrix: матрица смежности
     :return:
     FIX ME!!
     """
-    matrix_Kirchoff = adjacency_matrix.copy()
-    matrix_Kirchoff *= -1
-    for diagonal in range(len(matrix_Kirchoff)):
-        temp_sum = sum(matrix_Kirchoff)
-        matrix_Kirchoff[diagonal][diagonal] = -1 * sum(matrix_Kirchoff[diagonal])
-    temp1 = np.delete(matrix_Kirchoff, len(matrix_Kirchoff) - 1, 0)
-    temp2 = np.delete(temp1, len(matrix_Kirchoff) - 1, 1)
-    print("Количество остовных деревьев = ", np.linalg.det(temp2))
-    return np.linalg.det(temp2)
+    matrix_Kirchhoff = np.zeros((graph.number_of_nodes(), graph.number_of_nodes()), dtype=int)
+    count_of_neighbors = 0
+    for node in graph.nodes:
+        for n in graph[node]:
+            matrix_Kirchhoff[node][n] = -1
+            count_of_neighbors += 1
+        matrix_Kirchhoff[node][node] = int(count_of_neighbors)
+        count_of_neighbors = 0
+    temp1 = np.delete(matrix_Kirchhoff, len(matrix_Kirchhoff) - 1, 0)
+    temp2 = np.delete(temp1, len(matrix_Kirchhoff) - 1, 1)
+    count_spanning_trees = np.linalg.det(temp2)
+    print("Количество остовных деревьев = ", count_spanning_trees)
+    return count_spanning_trees
 
 def func_BFS_for_spanning_trees(graph, node, visited, path, count_path, trees):
     """
@@ -842,5 +891,10 @@ def func_calculated_current_node_potential_algo(graph):
         graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] +
                                             graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
                                                'resistance']
-
+    """
+    print("Значения напряжений у конечных потребителей мощности:")
+    for branch in graph.edges():
+        if int(branch[0]) == 0 and graph.edges[branch]['voltage'] == 0:
+            print("Напряжение между узлами ", branch, " = ", abs(graph.edges[branch]['I'] * graph.edges[branch]['resistance']))
+    """
 # end functions and support elements

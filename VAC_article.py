@@ -196,6 +196,7 @@ for tree in trees:
     if loses < lowest_loses:
         lowest_loses = loses
         print("for tree:", list_edges_in_spanning_tree, "loses = ", lowest_loses)
+        print("Максимальное значение потерь напряжения (абсолютная величина) = ", abs(new_graph.nodes[0]['potential']))
         print("Максимальное значение потерь напряжения в процентах = ", abs(abs((new_graph.nodes[0]['potential']/630)*100)-100))
     new_graph.clear()
     list_edges_in_spanning_tree.clear()
@@ -203,7 +204,6 @@ for tree in trees:
 """
 # расчёт вспомогательных величин и значений токов в ветвях
 #algo.func_calculating_support_variables(graph)
-#algo.func_calculated_current_node_potential_algo(graph)
 algo.func_calculated_current_node_potential_algo(graph)
 print("Величины токов в исходном графе: ")
 for branch in graph.edges():
@@ -211,5 +211,6 @@ for branch in graph.edges():
     print(graph.edges[branch]['I'])
 loses = algo.func_loses_energy_400(graph)
 print("Потери в ветвях для исходной схемы = ", loses)
+print("Максимальное значение потерь напряжения (абсолютная величина) = ", abs(graph.nodes[0]['potential']))
 print("Максимальное значение потерь напряжения в процентах = ", abs(abs((graph.nodes[0]['potential']/630)*100)-100))
 """
