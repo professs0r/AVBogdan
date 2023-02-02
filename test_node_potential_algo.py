@@ -276,7 +276,8 @@ def func_edges_to_undirected_graph(edges, count_nodes):
                        r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
                        cos_y=float(temp_edges[iter][11]),
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
-                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]))
+                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]),
+                       type_edge=str(temp_edges[iter][16]))
     return graph
 
 def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_nagr):
@@ -304,7 +305,7 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
                        cos_y=float(temp_edges[iter][11]),
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
                        lose_energy=float(temp_edges[iter][14]),
-                       PS=str(temp_edges[iter][15]))
+                       PS=str(temp_edges[iter][15]), type_edge=str(temp_edges[iter][16]))
                 break
     if (graph.number_of_edges() != (count_nodes - 1)):
         print("Ошибка! Недобрал или перебрал рёбер!")
@@ -319,7 +320,8 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
                        r_0=float(temp_edges_nagr[branch][9]), x_0=float(temp_edges_nagr[branch][10]),
                        cos_y=float(temp_edges_nagr[branch][11]),
                        sin_y=float(temp_edges_nagr[branch][12]), lose_volt=float(temp_edges_nagr[branch][13]),
-                       lose_energy=float(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]))
+                       lose_energy=float(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]),
+                       type_edge=str(temp_edges_nagr[branch][16]))
     return graph
 
 def func_list_of_edges_to_graph_recloser(list_of_edges, count_nodes, edges_lines, edges_nagr):
@@ -347,7 +349,7 @@ def func_list_of_edges_to_graph_recloser(list_of_edges, count_nodes, edges_lines
                        cos_y=float(temp_edges[iter][11]),
                        sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
                        lose_energy=float(temp_edges[iter][14]),
-                       PS=str(temp_edges[iter][15]))
+                       PS=str(temp_edges[iter][15]), type_edge=str(temp_edges[iter][16]))
                 break
     if (graph.number_of_edges() != (count_nodes - 1)):
         print("Ошибка! Недобрал или перебрал рёбер!")
@@ -362,7 +364,8 @@ def func_list_of_edges_to_graph_recloser(list_of_edges, count_nodes, edges_lines
                        r_0=float(temp_edges_nagr[branch][9]), x_0=float(temp_edges_nagr[branch][10]),
                        cos_y=float(temp_edges_nagr[branch][11]),
                        sin_y=float(temp_edges_nagr[branch][12]), lose_volt=float(temp_edges_nagr[branch][13]),
-                       lose_energy=float(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]))
+                       lose_energy=float(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]),
+                       type_edge=str(temp_edges_nagr[branch][16]))
     return graph
 
 def func_make_matrix_incidence(graph):
@@ -713,6 +716,22 @@ def func_loses_energy_high(graph):
         """
         print(graph[edge[0]][edge[1]]['lose_energy'])
 
+def func_law_Joule_Lenz(graph):
+    """
+
+    :param graph:
+    :return:
+    """
+    total_loses = 0
+    for edge in graph.edges():
+        # блок if необходим для того чтобы считались и в дальнейшем учитывались только потери в ветвях,
+        # а не в нагрузках
+        #if graph.edges[edge]['type_edge'] == str('Branch') or graph.edges[edge]['type_edge'] == str('Chord'):
+        if graph.edges[edge]['type_edge'] != str('Load') and graph.edges[edge]['type_edge'] != str('Source'):
+            graph.edges[edge]['lose_energy'] = graph.edges[edge]['resistance'] * pow(graph.edges[edge]['I'], 2)
+            total_loses += graph.edges[edge]['lose_energy']
+    return total_loses
+
 def func_loses_energy_400(graph):
     """
     function which calculate loses energy in directed graph (for voltage 400 V)
@@ -794,6 +813,30 @@ def func_algo_AVBogdan(graph):
     matrix_AV = np.delete(matrix_AV, len(matrix_AV) - 1, 0)
     print(matrix_AV)
     """
+
+def quick_sort(array):
+    """
+    сортировка Тони Хоара (QuickSort); для формата данных: (ребро, ток) сортировка идёт по значению тока
+    пример исходного массива:
+    exm_array = [(edge1, current1), (edge2, current2), (edge3, current3), ... ,(edgeN, currentN)]
+    пример отсортированного массива:
+    sort_array = [(edge3, current3), (edge2, current2), (edgeN, currentN), ... ,(edge1, current1)]
+    """
+    below = []
+    equal = []
+    above = []
+    if (len(array) > 1):
+        barrier = abs(array[0][1])
+        for x in array:
+            if abs(x[1]) < barrier:
+                below.append(x)
+            elif abs(x[1]) == barrier:
+                equal.append(x)
+            elif abs(x[1]) > barrier:
+                above.append(x)
+        return quick_sort(below) + equal + quick_sort(above)
+    else:
+        return array
 
 def func_calculated_reactive_compens(graph):
     """
@@ -897,4 +940,3 @@ def func_calculated_current_node_potential_algo(graph):
         if int(branch[0]) == 0 and graph.edges[branch]['voltage'] == 0:
             print("Напряжение между узлами ", branch, " = ", abs(graph.edges[branch]['I'] * graph.edges[branch]['resistance']))
     """
-# end functions and support elements
