@@ -2,8 +2,11 @@ import numpy as np
 import networkx as nx
 import operator
 import math
+import cmath
 
 #GLOBAL VARIABLES
+import spanning_tree as st
+
 x_0 = 0.336                                                                # for AL (D = 600 mm) cross_section = 35 mm^2
 resistance_Al = 0.028                                                                                       # Ohm*mm^2/m
 resistance_Cu = 0.0175                                                                                      # Ohm*mm^2/m
@@ -852,6 +855,14 @@ def func_calculated_reactive_compens(graph):
         tg_y = math.sqrt((1/pow(graph[edge[0]][edge[1]]['cos_y'], 2)) - 1)
         Q_ku = math.sqrt(3)*graph[edge[0]][edge[1]]['I']*U_l*graph[edge[0]][edge[1]]['cos_y']*(tg_y - tg_y_k)
 
+def func_algo_Floyd(graph):
+    """
+    алгоритм Дэйкстра
+    :param graph:
+    :return:
+    """
+    final_matrix = np.zeros((graph.number_of_nodes(), graph.number_of_nodes()))
+    return final_matrix
 
 def func_calculated_current_node_potential_algo(graph):
     """
@@ -935,8 +946,454 @@ def func_calculated_current_node_potential_algo(graph):
                                             graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
                                                'resistance']
     """
+    print("Значения напряжений у конечных потребителей:")
+    for branch in graph.edges():
+        if int(branch[0]) == 0 and graph.edges[branch]['voltage'] == 0:
+            print("Напряжение между узлами ", branch, " = ", abs(graph.edges[branch]['I'] * graph.edges[branch]['resistance']))
+    """
+
+def func_calculated_current_node_potential_algo_AC(graph, flag=False):
+    """
+    method node potential
+    :return:
+    """
+    if flag:
+        temp_voltage = 0.0
+        for branch in graph.edges():
+            if str(graph.edges[branch]['type_edge']) == str('Source'):
+                temp_voltage = complex(graph.edges[branch]['voltage']) / 1     # было так
+                #temp_voltage = complex(graph.edges[branch]['voltage']) / cmath.sqrt(2)
+                break
+        for edge in graph.edges():
+            if str(graph.edges[edge]['type_edge']) == str('Load'):
+                graph.edges[edge]['resistance'] = pow(temp_voltage, 2) / complex(graph.edges[edge]['power'])
+        del temp_voltage
+    count_nodes = int(graph.number_of_nodes())
+    count_branches = int(graph.number_of_edges())
+    zero_potential = int(count_nodes - 1)
+    conductivity_matrix = np.zeros((count_nodes - 1, count_nodes - 1), dtype=complex)
+    current_matrix = np.zeros((count_nodes - 1, 1), dtype=complex)
+    export_array = []
+    import_array = []
+    matrix_incidence = func_make_matrix_incidence(graph)
+    list_edges = []
+    for edge in graph.edges.items():
+        list_edges.append(edge[0])
+    for potential in range(count_nodes):  # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
+        if (potential == zero_potential):
+            continue
+        for edge in range(count_branches):
+            if matrix_incidence[potential][edge] == 1:
+                export_array.append(list_edges[edge][1])
+            elif matrix_incidence[potential][edge] == -1:
+                import_array.append(list_edges[edge][0])
+        for index_matrix in range(len(conductivity_matrix[potential])):
+            if (index_matrix == zero_potential):
+                continue
+            if (potential == index_matrix):
+                if (len(export_array) == 1):
+                    conductivity_matrix[potential][index_matrix] += 1 / complex(
+                    graph[potential][export_array[0]]['resistance'])
+                elif (len(export_array) > 1):
+                    for exp_arr in range(len(export_array)):
+                        conductivity_matrix[potential][index_matrix] += 1 / complex((graph[potential][export_array[exp_arr]]['resistance']))
+                        print(conductivity_matrix[potential][index_matrix])
+                if (len(import_array) == 1):
+                    conductivity_matrix[potential][index_matrix] += 1 / complex(
+                    graph[import_array[0]][potential]['resistance'])
+                elif (len(import_array) > 1):
+                    for imp_arr in range(len(import_array)):
+                        conductivity_matrix[potential][index_matrix] += 1 / complex(
+                        graph[import_array[imp_arr]][potential]['resistance'])
+        #print("conductivity_matrix = ", conductivity_matrix)
+        if (len(export_array) == 1):
+            if (export_array[0] != zero_potential):
+                conductivity_matrix[potential][export_array[0]] -= 1 / complex(graph[potential][export_array[0]]['resistance'])
+                current_matrix[potential] -= complex(graph[potential][export_array[0]]['voltage']) / complex(
+                graph[potential][export_array[0]]['resistance'])
+        elif (len(export_array) > 1):
+            for exp_arr in range(len(export_array)):
+                if (export_array[exp_arr] == zero_potential):
+                    continue
+                conductivity_matrix[potential][export_array[exp_arr]] -= 1 / complex(
+                graph[potential][export_array[exp_arr]]['resistance'])
+                current_matrix[potential] -= complex(graph[potential][export_array[exp_arr]]['voltage']) / complex(
+                graph[potential][export_array[exp_arr]]['resistance'])
+        if (len(import_array) == 1):
+            if (import_array[0] != zero_potential):
+                conductivity_matrix[potential][import_array[0]] -= 1 / complex(graph[import_array[0]][potential]['resistance'])
+                current_matrix[potential] += complex(graph[import_array[0]][potential]['voltage']) / complex(
+                graph[import_array[0]][potential]['resistance'])
+        elif (len(import_array) > 1):
+            for imp_arr in range(len(import_array)):
+                if (import_array[imp_arr] == zero_potential):
+                    continue
+                conductivity_matrix[potential][import_array[imp_arr]] -= 1 / complex(
+                graph[import_array[imp_arr]][potential]['resistance'])
+                current_matrix[potential] += complex(graph[import_array[imp_arr]][potential]['voltage']) / complex(
+                graph[import_array[imp_arr]][potential]['resistance'])
+
+        export_array.clear()
+        import_array.clear()
+
+
+    print("conductivity_matrix = ", conductivity_matrix)
+    with open('5_conductivity_matrix.txt', 'w') as testfile:
+        for row in conductivity_matrix:
+            testfile.write(' '.join([str(a) for a in row]) + '\n')
+    print("current_matrix = ", current_matrix)
+    with open('5_current_matrix.txt', 'w') as testfile:
+        for row in current_matrix:
+            testfile.write(' '.join([str(a) for a in row]) + '\n')
+
+
+    potential_matrix = np.linalg.solve(conductivity_matrix, current_matrix)
+
+    print("potential_matrix = ", potential_matrix)
+    with open('5_potential_matrix.txt', 'w') as testfile:
+        for row in potential_matrix:
+            testfile.write(' '.join([str(a) for a in row]) + '\n')
+
+    for nodes in range(len(potential_matrix)):
+        graph.nodes[nodes]['potential'] = complex(potential_matrix[nodes])
+        #graph.nodes[nodes]['potential'] = float(potential_matrix[nodes])
+        #print("Узел - ", nodes, ", потенциал ", graph.nodes[nodes]['potential'])
+
+    for branch in graph.edges():
+        print("Для ветви ", branch[0], branch[1], ":", '\n')
+        print("Первый потанцевал = ", complex(graph.nodes[branch[0]]['potential']))
+        print("Второй потанцевал = ", complex(graph.nodes[branch[1]]['potential']))
+        print("Напряжение = ", complex(graph[branch[0]][branch[1]]['voltage']))
+        print("Сопротивление = ", complex(graph[branch[0]][branch[1]]['resistance']))
+        graph[branch[0]][branch[1]]['I'] = (complex(graph.nodes[branch[0]]['potential']) - complex(graph.nodes[branch[1]]['potential']) +
+                                            complex(graph[branch[0]][branch[1]]['voltage'])) / complex(graph[branch[0]][branch[1]][
+                                               'resistance'])
+        print("Ток = ", cmath.polar(graph[branch[0]][branch[1]]['I']))
+        print("Результирующий ток = ", graph[branch[0]][branch[1]]['I'])
+    """
     print("Значения напряжений у конечных потребителей мощности:")
     for branch in graph.edges():
         if int(branch[0]) == 0 and graph.edges[branch]['voltage'] == 0:
             print("Напряжение между узлами ", branch, " = ", abs(graph.edges[branch]['I'] * graph.edges[branch]['resistance']))
     """
+
+def func_edges_to_undirected_graph_AC(edges, count_nodes):
+    """
+    функция для инициализации неориентированного графа на основе списка рёбер
+    :param edges:
+    :param count_nodes:
+    :return:
+    """
+    graph = nx.Graph()
+    for index in range(count_nodes):
+        graph.add_node(index, potential=complex(0, 0), active=complex(0, 0), I=complex(0, 0), root=None, parent=None, visited=False, weight=index+1)
+    temp_edges = edges.copy()
+    for iter in range(len(edges)):
+        graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
+                       voltage=temp_edges[iter][3], type=int(temp_edges[iter][4]),
+                       length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
+                       material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
+                       cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]),
+                       type_edge=str(temp_edges[iter][16]),
+                       power=temp_edges[iter][17])
+    return graph
+
+def func_edges_to_undirected_graph_alt(edges, count_nodes):
+    """
+    функция для инициализации неориентированного графа на основе списка рёбер
+    :param edges:
+    :param count_nodes:
+    :return:
+    """
+    graph = nx.Graph()
+    """
+    # active load in each node 15 kW
+    for index in range(count_nodes):
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
+    """
+    for index in range(count_nodes):
+        graph.add_node(index, potential=0.0, active=15.0, I=0.0, root=None, parent=None, visited=False, weight=index+1)
+    temp_edges = edges.copy()
+    for iter in range(len(edges)):
+        graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=float(temp_edges[iter][2]),
+                       voltage=float(temp_edges[iter][3]), type=int(temp_edges[iter][4]),
+                       length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
+                       material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
+                       cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
+                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]),
+                       type_edge=str(temp_edges[iter][16]),
+                       power=float(temp_edges[iter][17]))
+    return graph
+
+def func_calculated_current_node_potential_algo_alt(graph, flag=False):
+    """
+    method node potential
+    :return:
+    """
+    if flag != False:
+        voltage_source = 0.0
+        for branch in graph.edges():
+            if str(graph.edges[branch]['type_edge']) == str('Source'):
+                voltage_source += graph.edges[branch]['voltage']
+        for edge in graph.edges():
+            if str(graph.edges[edge]['type_edge']) == str('Load'):
+                graph.edges[edge]['resistance'] += pow(voltage_source, 2) / graph.edges[edge]['power']
+    temp_voltage = 0.0
+    for branch in graph.edges():
+        if temp_voltage > 0.1:
+            break
+        elif graph.edges[branch]['voltage'] > 0.1:
+            temp_voltage = graph.edges[branch]['voltage'] / 1
+    for branch in graph.edges():
+        if graph.edges[branch]['type_edge'] != 'Source' and graph.edges[branch]['power'] > 0.01:
+            graph.edges[branch]['resistance'] = pow(temp_voltage, 2) / graph.edges[branch]['power']
+    del temp_voltage
+    #print("Количество узлов = ", graph.number_of_nodes())
+    count_nodes = int(graph.number_of_nodes())
+    count_branches = int(graph.number_of_edges())
+    zero_potential = int(count_nodes - 1)
+    conductivity_matrix = np.zeros((count_nodes - 1, count_nodes - 1))
+    current_matrix = np.zeros((count_nodes - 1, 1))
+    export_array = []
+    import_array = []
+    matrix_incidence = func_make_matrix_incidence(graph)
+    list_edges = []
+    for edge in graph.edges.items():
+        list_edges.append(edge[0])
+    for potential in range(count_nodes):  # за данный проход формируется уравнение узловых потенциалов относительно рассматриваемого узла
+        if (potential == zero_potential):
+            continue
+        for edge in range(count_branches):
+            if matrix_incidence[potential][edge] == 1:
+                export_array.append(list_edges[edge][1])
+            elif matrix_incidence[potential][edge] == -1:
+                import_array.append(list_edges[edge][0])
+        for index_matrix in range(len(conductivity_matrix[potential])):
+            if (index_matrix == zero_potential):
+                continue
+            if (potential == index_matrix):
+                if (len(export_array) == 1):
+                    conductivity_matrix[potential][index_matrix] += 1 / (
+                    graph[potential][export_array[0]]['resistance'])
+                elif (len(export_array) > 1):
+                    for exp_arr in range(len(export_array)):
+                        conductivity_matrix[potential][index_matrix] += 1 / (graph[potential][export_array[exp_arr]]['resistance'])
+                if (len(import_array) == 1):
+                    conductivity_matrix[potential][index_matrix] += 1 / (
+                    graph[import_array[0]][potential]['resistance'])
+                elif (len(import_array) > 1):
+                    for imp_arr in range(len(import_array)):
+                        conductivity_matrix[potential][index_matrix] += 1 / (
+                        graph[import_array[imp_arr]][potential]['resistance'])
+        if (len(export_array) == 1):
+            if (export_array[0] != zero_potential):
+                conductivity_matrix[potential][export_array[0]] -= 1 / (graph[potential][export_array[0]]['resistance'])
+                current_matrix[potential] -= (graph[potential][export_array[0]]['voltage']) / (
+                graph[potential][export_array[0]]['resistance'])
+        elif (len(export_array) > 1):
+            for exp_arr in range(len(export_array)):
+                if (export_array[exp_arr] == zero_potential):
+                    continue
+                conductivity_matrix[potential][export_array[exp_arr]] -= 1 / (
+                graph[potential][export_array[exp_arr]]['resistance'])
+                current_matrix[potential] -= (graph[potential][export_array[exp_arr]]['voltage']) / (
+                graph[potential][export_array[exp_arr]]['resistance'])
+        if (len(import_array) == 1):
+            if (import_array[0] != zero_potential):
+                conductivity_matrix[potential][import_array[0]] -= 1 / (graph[import_array[0]][potential]['resistance'])
+                current_matrix[potential] += (graph[import_array[0]][potential]['voltage']) / (
+                graph[import_array[0]][potential]['resistance'])
+        elif (len(import_array) > 1):
+            for imp_arr in range(len(import_array)):
+                if (import_array[imp_arr] == zero_potential):
+                    continue
+                conductivity_matrix[potential][import_array[imp_arr]] -= 1 / (
+                graph[import_array[imp_arr]][potential]['resistance'])
+                current_matrix[potential] += (graph[import_array[imp_arr]][potential]['voltage']) / (
+                graph[import_array[imp_arr]][potential]['resistance'])
+
+        export_array.clear()
+        import_array.clear()
+
+    #print("conductivity_matrix = ", conductivity_matrix)
+    #df = pd.DataFrame(conductivity_matrix)
+    #df.to_excel('./result.xlsx')
+    #print("current_matrix = ", current_matrix)
+    potential_matrix = np.linalg.solve(conductivity_matrix, current_matrix)
+
+    for nodes in range(len(potential_matrix)):
+        graph.nodes[nodes]['potential'] = float(potential_matrix[nodes])
+        #print("Узел - ", nodes, ", потенциал ", graph.nodes[nodes]['potential'])
+
+    for branch in graph.edges():
+
+        graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] - graph.nodes[branch[1]]['potential'] +
+                                            graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
+                                               'resistance']
+
+        """
+        graph[branch[0]][branch[1]]['I'] = (graph.nodes[branch[0]]['potential'] + graph[branch[0]][branch[1]]['voltage']) / graph[branch[0]][branch[1]][
+                                               'resistance']
+        """
+        """
+        print("Потанцевал 0 = ", graph.nodes[branch[0]]['potential'])
+        print("Потанцевал 1 = ", graph.nodes[branch[1]]['potential'])
+        print("Напряжение = ", graph[branch[0]][branch[1]]['voltage'])
+        print("Ток = ", graph[branch[0]][branch[1]]['I'])
+        """
+    """
+    print("Значения напряжений у конечных потребителей мощности:")
+    for branch in graph.edges():
+        if int(branch[0]) == 0 and graph.edges[branch]['voltage'] == 0:
+            print("Напряжение между узлами ", branch, " = ", abs(graph.edges[branch]['I'] * graph.edges[branch]['resistance']))
+    """
+
+
+COUNT_NODES = 10
+
+#edge_0 = (source=0, finish=1, resistance=70.1,
+# voltage=630, type='СИП', length=1000, cross_section=35, I=0,
+#          material=Al, r_0=0 (calculated), x_0=0 (calculated), cos_y=0.89, sin_y=0 (calculated),
+#          lose_volt=0 (calculated), lose_energy=0 (calculated))
+
+edge_0 = (0, 1, 0.1, 630, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Source')
+edge_1 = (1, 2, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_2 = (1, 4, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_3 = (2, 3, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_4 = (2, 5, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_5 = (3, 6, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_6 = (4, 5, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_7 = (4, 7, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_8 = (5, 6, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_9 = (5, 8, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_10 = (6, 9, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_11 = (7, 8, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+edge_12 = (8, 9, 0.5, 0, 0, 1000, 35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Branch')
+
+
+edge_nagr_2 = (2, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_3 = (3, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_4 = (4, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_5 = (5, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_6 = (6, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_7 = (7, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_8 = (8, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E1', 'Load')
+edge_nagr_9 = (9, 0, 200.0, 0, 0, -1000, -35, 0, 'Al', 0, 0, 0.89, 0, 0, 0, 'E2', 'Load')
+
+edges_lines = np.array([edge_0,
+                        edge_1,
+                        edge_2,
+                        edge_3,
+                        edge_4,
+                        edge_5,
+                        edge_6,
+                        edge_7,
+                        edge_8,
+                        edge_9,
+                        edge_10,
+                        edge_11,
+                        edge_12
+                        ])
+
+edges_nagr = np.array([edge_nagr_2,
+                       edge_nagr_3,
+                       edge_nagr_4,
+                       edge_nagr_5,
+                       edge_nagr_6,
+                       edge_nagr_7,
+                       edge_nagr_8,
+                       edge_nagr_9
+                       ])
+
+# для расчёта токов
+
+edges = np.array([edge_0,
+                  edge_1,
+                  edge_2,
+                  edge_3,
+                  edge_4,
+                  edge_5,
+                  edge_6,
+                  edge_7,
+                  edge_8,
+                  edge_9,
+                  edge_10,
+                  edge_11,
+                  edge_12,
+                  edge_nagr_2,
+                  edge_nagr_3,
+                  edge_nagr_4,
+                  edge_nagr_5,
+                  edge_nagr_6,
+                  edge_nagr_7,
+                  edge_nagr_8,
+                  edge_nagr_9
+                  ])
+
+"""
+# для построения всех остовных деревьев
+edges = np.array([edge_0,
+                  edge_1,
+                  edge_2,
+                  edge_3,
+                  edge_4,
+                  edge_5,
+                  edge_6,
+                  edge_7,
+                  edge_8,
+                  edge_9,
+                  edge_10,
+                  edge_11,
+                  edge_12])
+"""
+
+graph = func_edges_to_undirected_graph(edges, COUNT_NODES)
+
+nV = 9
+INF = 1000000000000000000000000000000000000000000000000000000
+
+# Algorithm
+def floyd(G):
+    dist = list(map(lambda p: list(map(lambda q: q, p)), G))
+    # Adding vertices individually
+    for r in range(nV):
+        for p in range(nV):
+            for q in range(nV):
+                dist[p][q] = min(dist[p][q], dist[p][r] + dist[r][q])
+    return sol(dist)
+
+# Printing the output
+def sol(dist):
+    res_array = np.ndarray((len(dist), len(dist)))
+    res_array.fill(1000)
+    for p in range(nV):
+        for q in range(nV):
+            if(dist[p][q] == INF):
+                print("INF", end=" ")
+            else:
+                res_array[p][q] = dist[p][q]
+    return res_array
+#     1   2     3    4     5    6    7    8    9    10  11  12  13  14  15
+G = [[0, 0.02, INF, 0.02, INF, INF, INF, INF, INF], #1
+     [0.02, 0, 0.05, INF, INF, INF, INF, INF, INF], #2
+     [INF, 0.05, 0, INF, INF, 0.16, INF, INF, INF],   #3
+     [0.02, INF, INF, 0, 0.06, INF, 0.15, INF, INF],   #4
+     [INF, INF, INF, 0.06, 0, INF, INF, 0.12, INF],   #5
+     [INF, INF, 0.16, INF, INF, 0, INF, INF, INF],   #6
+     [INF, INF, INF, 0.15, INF, INF, 0, INF, INF],   #7
+     [INF, INF, INF, INF, 0.12, INF, INF, 0, 0.09],   #8
+     [INF, INF, INF, INF, INF, INF, INF, 0.09, 0]]   #9
+"""
+res_array = floyd(G)
+print(res_array)
+vector_weigts = [0, 26.46, 172.56, 79.38, 99.22, 158.76, 99.22, 396.9, 110.25]
+result = np.multiply(res_array, vector_weigts)
+print(result)
+"""
