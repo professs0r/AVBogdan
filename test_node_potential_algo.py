@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import networkx as nx
 import operator
@@ -719,20 +721,30 @@ def func_loses_energy_high(graph):
         """
         print(graph[edge[0]][edge[1]]['lose_energy'])
 
-def func_law_Joule_Lenz(graph):
+def func_law_Joule_Lenz(graph, flag=False):
     """
 
     :param graph:
     :return:
     """
     total_loses = 0
-    for edge in graph.edges():
-        # блок if необходим для того чтобы считались и в дальнейшем учитывались только потери в ветвях,
-        # а не в нагрузках
-        #if graph.edges[edge]['type_edge'] == str('Branch') or graph.edges[edge]['type_edge'] == str('Chord'):
-        if graph.edges[edge]['type_edge'] != str('Load') and graph.edges[edge]['type_edge'] != str('Source'):
-            graph.edges[edge]['lose_energy'] = graph.edges[edge]['resistance'] * pow(graph.edges[edge]['I'], 2)
-            total_loses += graph.edges[edge]['lose_energy']
+    if flag:
+        for edge in graph.edges():
+            if graph.edges[edge]['type_edge'] != str('Load') and graph.edges[edge]['type_edge'] != str('Source'):
+                #print("Ребро - ", edge)
+                #print("graph.edges[edge]['I'] = ", cmath.polar(graph.edges[edge]['I']).__getitem__(0))
+                #print("graph.edges[edge]['resistance'] = ", graph.edges[edge]['resistance'])
+                graph.edges[edge]['lose_energy'] = complex(graph.edges[edge]['resistance']) * pow(complex(graph.edges[edge]['I']), 2)
+                total_loses += graph.edges[edge]['lose_energy']
+    else:
+        for edge in graph.edges():
+            # блок if необходим для того чтобы считались и в дальнейшем учитывались только потери в ветвях,
+            # а не в нагрузках
+            #if graph.edges[edge]['type_edge'] == str('Branch') or graph.edges[edge]['type_edge'] == str('Chord'):
+            if graph.edges[edge]['type_edge'] != str('Load') and graph.edges[edge]['type_edge'] != str('Source'):
+                graph.edges[edge]['lose_energy'] = graph.edges[edge]['resistance'] * pow(graph.edges[edge]['I'], 2)
+                total_loses += graph.edges[edge]['lose_energy']
+    print("Потери = ", cmath.polar(total_loses))
     return total_loses
 
 def func_loses_energy_400(graph):
@@ -863,6 +875,61 @@ def func_algo_Floyd(graph):
     """
     final_matrix = np.zeros((graph.number_of_nodes(), graph.number_of_nodes()))
     return final_matrix
+
+def func_const_power(graph):
+    """
+    function for calculate impedance for const power
+    :param graph:
+    :return:
+    """
+    S_calc = complex(0, 0)
+    #while (graph.edges[branch]['power'].real() - r_i > 0.001 and graph.edges[branch]['power'].imag() - x_i > 0.001) or iter < 20:
+    """
+    print("Мощности ветвей \"до\":")
+    for branch in graph.edges():
+        if str(graph.edges[branch]['type_edge']) == str('Load'):
+            #print(graph.edges[branch])     исключительно для иллюстрации (аттрибуты ребра)
+            #S_calc = pow(complex(graph.edges[branch]['voltage']), 2) / complex(graph.edges[branch]['resistance']).conjugate()
+            #S_calc = pow(complex(graph.edges[branch]['voltage']).real, 2) / complex(graph.edges[branch]['resistance']).conjugate()
+            print("Мощность ребра через сопротивление ", branch[0], " - ", branch[1], " = ", S_calc)
+            print("Мощность ребра через ток ", complex(graph.edges[branch]['voltage']) * complex(graph.edges[branch]['I']).conjugate())
+    """
+    print("\nНачинаем корректировать сопротивления\n")
+    for branch in graph.edges():
+        if str(graph.edges[branch]['type_edge']) == str('Load'):
+            r_0 = complex(graph.edges[branch]['resistance']).real
+            x_0 = complex(graph.edges[branch]['resistance']).imag
+            for iter in range(10):
+                z_0 = complex(r_0, x_0)
+                #S_calc = pow(graph.edges[branch]['voltage'].real, 2) / z_0.conjugate()
+                S_calc = pow(graph.edges[branch]['voltage'], 2) / z_0.conjugate()
+                #print("Мощность ребра через сопротивление = ", S_calc)
+                #print("Мощность ребра через ток ",complex(graph.edges[branch]['voltage']) * complex(graph.edges[branch]['I']).conjugate())
+                #print("Расчётная полная мощность = ", S_calc)
+                r_i = r_0 * (2 - complex(graph.edges[branch]['power']).real / S_calc.real)
+                print("complex(graph.edges[branch]['power']).real = ", complex(graph.edges[branch]['power']).real)
+                print("S_calc.real = ", S_calc.real)
+                print("Дробь = ", complex(graph.edges[branch]['power']).real / S_calc.real)
+                r_0 = r_i
+                x_i = x_0 * (2 - complex(graph.edges[branch]['power']).imag / S_calc.imag)
+                print("complex(graph.edges[branch]['power']).imag = ", complex(graph.edges[branch]['power']).imag)
+                print("S_calc.imag = ", S_calc.imag)
+                print("Дробь = ", complex(graph.edges[branch]['power']).imag / S_calc.imag)
+                x_0 = x_i
+            #graph.edges[branch]['resistance'] = z_0
+            #print("Для ребра ", branch[0], " - ", branch[1])
+            #print("Результирующая потребляемая мощность = ", S_calc)
+            #print("Сопротивление = ", graph.edges[branch]['resistance'])
+            #print("Напряжение = ", graph.edges[branch]['voltage'])
+            graph.edges[branch]['resistance'] = copy.deepcopy(z_0)
+    print("\n\nМощности ветвей \"после\":")
+    for branch in graph.edges():
+        if str(graph.edges[branch]['type_edge']) == str('Load'):
+            print("Сопротивление = ", graph.edges[branch]['resistance'])
+            print("Напряжение = ", graph.edges[branch]['voltage'])
+            print("Мощность (активная реактивная) ребра ", branch[0], " - ", branch[1], " = ", pow(graph.edges[branch]['voltage'], 2) / complex(graph.edges[branch]['resistance'].conjugate()))
+            print("Полная мощность = ", cmath.polar(pow(graph.edges[branch]['voltage'], 2) / complex(graph.edges[branch]['resistance'].conjugate())))
+
 
 def func_calculated_current_node_potential_algo(graph):
     """
@@ -997,7 +1064,6 @@ def func_calculated_current_node_potential_algo_AC(graph, flag=False):
                 elif (len(export_array) > 1):
                     for exp_arr in range(len(export_array)):
                         conductivity_matrix[potential][index_matrix] += 1 / complex((graph[potential][export_array[exp_arr]]['resistance']))
-                        print(conductivity_matrix[potential][index_matrix])
                 if (len(import_array) == 1):
                     conductivity_matrix[potential][index_matrix] += 1 / complex(
                     graph[import_array[0]][potential]['resistance'])
@@ -1036,7 +1102,8 @@ def func_calculated_current_node_potential_algo_AC(graph, flag=False):
         export_array.clear()
         import_array.clear()
 
-
+    # для вывода информации во внешний файл
+    """
     print("conductivity_matrix = ", conductivity_matrix)
     with open('5_conductivity_matrix.txt', 'w') as testfile:
         for row in conductivity_matrix:
@@ -1045,37 +1112,21 @@ def func_calculated_current_node_potential_algo_AC(graph, flag=False):
     with open('5_current_matrix.txt', 'w') as testfile:
         for row in current_matrix:
             testfile.write(' '.join([str(a) for a in row]) + '\n')
-
+    """
 
     potential_matrix = np.linalg.solve(conductivity_matrix, current_matrix)
 
-    print("potential_matrix = ", potential_matrix)
-    with open('5_potential_matrix.txt', 'w') as testfile:
-        for row in potential_matrix:
-            testfile.write(' '.join([str(a) for a in row]) + '\n')
+    # косяк в оставшейся части кода данной функции
 
     for nodes in range(len(potential_matrix)):
         graph.nodes[nodes]['potential'] = complex(potential_matrix[nodes])
-        #graph.nodes[nodes]['potential'] = float(potential_matrix[nodes])
         #print("Узел - ", nodes, ", потенциал ", graph.nodes[nodes]['potential'])
 
     for branch in graph.edges():
-        print("Для ветви ", branch[0], branch[1], ":", '\n')
-        print("Первый потанцевал = ", complex(graph.nodes[branch[0]]['potential']))
-        print("Второй потанцевал = ", complex(graph.nodes[branch[1]]['potential']))
-        print("Напряжение = ", complex(graph[branch[0]][branch[1]]['voltage']))
-        print("Сопротивление = ", complex(graph[branch[0]][branch[1]]['resistance']))
         graph[branch[0]][branch[1]]['I'] = (complex(graph.nodes[branch[0]]['potential']) - complex(graph.nodes[branch[1]]['potential']) +
                                             complex(graph[branch[0]][branch[1]]['voltage'])) / complex(graph[branch[0]][branch[1]][
                                                'resistance'])
-        print("Ток = ", cmath.polar(graph[branch[0]][branch[1]]['I']))
-        print("Результирующий ток = ", graph[branch[0]][branch[1]]['I'])
-    """
-    print("Значения напряжений у конечных потребителей мощности:")
-    for branch in graph.edges():
-        if int(branch[0]) == 0 and graph.edges[branch]['voltage'] == 0:
-            print("Напряжение между узлами ", branch, " = ", abs(graph.edges[branch]['I'] * graph.edges[branch]['resistance']))
-    """
+        #print(cmath.polar(graph[branch[0]][branch[1]]['I']))
 
 def func_edges_to_undirected_graph_AC(edges, count_nodes):
     """
@@ -1089,17 +1140,17 @@ def func_edges_to_undirected_graph_AC(edges, count_nodes):
         graph.add_node(index, potential=complex(0, 0), active=complex(0, 0), I=complex(0, 0), root=None, parent=None, visited=False, weight=index+1)
     temp_edges = edges.copy()
     for iter in range(len(edges)):
-        graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=temp_edges[iter][2],
-                       voltage=temp_edges[iter][3], type=int(temp_edges[iter][4]),
+        graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=complex(temp_edges[iter][2]),
+                       voltage=complex(temp_edges[iter][3]), type=int(temp_edges[iter][4]),
                        length=float(temp_edges[iter][5]),
-                       cross_section=float(temp_edges[iter][6]), I=float(temp_edges[iter][7]),
+                       cross_section=float(temp_edges[iter][6]), I=complex(temp_edges[iter][7]),
                        material=temp_edges[iter][8],
                        r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
                        cos_y=float(temp_edges[iter][11]),
-                       sin_y=float(temp_edges[iter][12]), lose_volt=float(temp_edges[iter][13]),
-                       lose_energy=float(temp_edges[iter][14]), PS=str(temp_edges[iter][15]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=complex(temp_edges[iter][13]),
+                       lose_energy=complex(temp_edges[iter][14]), PS=str(temp_edges[iter][15]),
                        type_edge=str(temp_edges[iter][16]),
-                       power=temp_edges[iter][17])
+                       power=complex(temp_edges[iter][17]))
     return graph
 
 def func_edges_to_undirected_graph_alt(edges, count_nodes):
@@ -1359,7 +1410,7 @@ graph = func_edges_to_undirected_graph(edges, COUNT_NODES)
 nV = 9
 INF = 1000000000000000000000000000000000000000000000000000000
 
-# Algorithm
+# Algorithm Floyd
 def floyd(G):
     dist = list(map(lambda p: list(map(lambda q: q, p)), G))
     # Adding vertices individually
