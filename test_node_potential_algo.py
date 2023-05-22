@@ -329,6 +329,50 @@ def func_list_of_edges_to_graph(list_of_edges, count_nodes, edges_lines, edges_n
                        type_edge=str(temp_edges_nagr[branch][16]))
     return graph
 
+def func_list_of_edges_to_graph_AC(list_of_edges, count_nodes, edges_lines, edges_nagr):
+    """
+    надо пофиксить
+    :param list_of_edges:
+    :return:
+    """
+    graph = nx.Graph()
+    for index in range(count_nodes):
+        graph.add_node(index, potential=complex(0, 0), active=complex(15, 0), I=complex(0, 0), root=None, parent=None, visited=False, weight=index+1)
+    temp_edges = edges_lines.copy()
+    for edge in list_of_edges:
+        for iter in range(len(temp_edges)):
+            if (int(edge[0]) == int(temp_edges[iter][0]) and int(edge[1]) == int(temp_edges[iter][1])) or \
+                    (int(edge[1]) == int(temp_edges[iter][0]) and int(edge[0]) == int(temp_edges[iter][1])):
+                graph.add_edge(int(temp_edges[iter][0]), int(temp_edges[iter][1]), resistance=complex(temp_edges[iter][2]),
+                       voltage=complex(temp_edges[iter][3]), type=int(temp_edges[iter][4]),
+                       length=float(temp_edges[iter][5]),
+                       cross_section=float(temp_edges[iter][6]), I=complex(temp_edges[iter][7]),
+                       material=temp_edges[iter][8],
+                       r_0=float(temp_edges[iter][9]), x_0=float(temp_edges[iter][10]),
+                       cos_y=float(temp_edges[iter][11]),
+                       sin_y=float(temp_edges[iter][12]), lose_volt=complex(temp_edges[iter][13]),
+                       lose_energy=complex(temp_edges[iter][14]),
+                       PS=str(temp_edges[iter][15]), type_edge=str(temp_edges[iter][16]),
+                       power=complex(temp_edges[iter][17]))
+                break
+    if (graph.number_of_edges() != (count_nodes - 1)):
+        print("Ошибка! Недобрал или перебрал рёбер!")
+    del temp_edges
+    temp_edges_nagr = edges_nagr.copy()
+    for branch in range(len(temp_edges_nagr)):
+        graph.add_edge(int(temp_edges_nagr[branch][0]), int(temp_edges_nagr[branch][1]),
+                       resistance=complex(temp_edges_nagr[branch][2]),
+                       voltage=complex(temp_edges_nagr[branch][3]), type=int(temp_edges_nagr[branch][4]),
+                       length=float(temp_edges_nagr[branch][5]),
+                       cross_section=float(temp_edges_nagr[branch][6]), I=complex(temp_edges_nagr[branch][7]),
+                       material=temp_edges_nagr[branch][8],
+                       r_0=float(temp_edges_nagr[branch][9]), x_0=float(temp_edges_nagr[branch][10]),
+                       cos_y=float(temp_edges_nagr[branch][11]),
+                       sin_y=float(temp_edges_nagr[branch][12]), lose_volt=complex(temp_edges_nagr[branch][13]),
+                       lose_energy=complex(temp_edges_nagr[branch][14]), PS=str(temp_edges_nagr[branch][15]),
+                       type_edge=str(temp_edges_nagr[branch][16]), power=complex(temp_edges_nagr[branch][17]))
+    return graph
+
 def func_list_of_edges_to_graph_recloser(list_of_edges, count_nodes, edges_lines, edges_nagr):
     """
     10.10.22 в данной функции исправляю аргументы функции и сам код функции для работоспособности функции по поиску
@@ -723,7 +767,7 @@ def func_loses_energy_high(graph):
 
 def func_law_Joule_Lenz(graph, flag=False):
     """
-
+    если расчёт ведётся для комплексных чисел, тогда необходимо в качестве аргумента функции (flag) указывать True
     :param graph:
     :return:
     """
@@ -744,7 +788,7 @@ def func_law_Joule_Lenz(graph, flag=False):
             if graph.edges[edge]['type_edge'] != str('Load') and graph.edges[edge]['type_edge'] != str('Source'):
                 graph.edges[edge]['lose_energy'] = graph.edges[edge]['resistance'] * pow(graph.edges[edge]['I'], 2)
                 total_loses += graph.edges[edge]['lose_energy']
-    print("Потери = ", cmath.polar(total_loses))
+    #print("Потери = ", cmath.polar(total_loses))
     return total_loses
 
 def func_loses_energy_400(graph):
